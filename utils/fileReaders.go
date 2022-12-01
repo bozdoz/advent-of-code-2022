@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 )
 
 // helper for parsing lines of text from a file
@@ -59,4 +60,13 @@ func ReadInts(file string) (content []int, err error) {
 
 		return as_int
 	})
+}
+
+// splits and trims file to return new-line-separated groups
+func ReadNewLineGroups(file string) (content []string, err error) {
+	data, err := ReadFile(file)
+
+	content = strings.Split(strings.TrimSpace(string(data)), "\n\n")
+
+	return
 }
