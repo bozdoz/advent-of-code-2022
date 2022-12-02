@@ -1,5 +1,46 @@
 # What Am I Learning Each Day?
 
+### Day 2
+
+**Difficulty: 1/10**
+
+**Time: ~20 min**
+
+I think I spent too much time on structure today: creating constants and maps for input data parsing.  Probably I didn't need to create a `struct` for `tournament` either. 
+
+Though I did enjoy writing the `iota`'s:
+
+```go
+const (
+	ROCK = iota + 1
+	PAPER
+	SCISSORS
+)
+
+const (
+	LOSS = iota * 3
+	DRAW
+	WIN
+)
+```
+
+I've actually never done a rock, paper, scissors program, so that was mildly interesting.  I fought about making my constants 0-based instead of making `ROCK=1`, so that I could work with modulus to wrap around when `ROCK` beats `SCISSORS`.
+
+Instead I just had to include an if statement:
+
+```go
+var yourScore, opponent int
+// ...
+case win:
+  choice := opponent + 1
+  if choice == 4 {
+    choice = 1
+  }
+  yourScore += WIN + choice
+```
+
+Didn't spend any time on utilities, or the test, or in the `day-02.go` file; so I think that's a huge win.
+
 ### Day 1
 
 **Difficulty: 1/10**
