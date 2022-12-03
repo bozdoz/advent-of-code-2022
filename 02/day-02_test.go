@@ -8,7 +8,7 @@ var answers = map[int]int{
 	2: 12,
 }
 
-var data, _ = fileReader("example.txt")
+var data = fileReader("example.txt")
 
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
