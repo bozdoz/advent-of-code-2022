@@ -35,12 +35,7 @@ func init() {
 // run the solvers
 func main() {
 	filename := utils.GetInputFile()
-	data, err := fileReader(filename)
-
-	if err != nil {
-		fmt.Println(fmt.Errorf("failed to read file: %s - %w", filename, err))
-		os.Exit(1)
-	}
+	data := fileReader(filename)
 
 	fncs := map[string]func(dataType) (int, error){
 		"partOne": partOne,
