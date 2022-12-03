@@ -8,16 +8,12 @@ var answers = map[int]int{
 	2: 45000,
 }
 
-var data, _ = fileReader("example.txt")
+var data = fileReader("example.txt")
 
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
 
-	val, err := partOne(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partOne(dataType(data))
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
@@ -27,13 +23,45 @@ func TestExampleOne(t *testing.T) {
 func TestExampleTwo(t *testing.T) {
 	expected := answers[2]
 
-	val, err := partTwo(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partTwo(dataType(data))
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
+	}
+}
+
+func TestExampleOneHeap(t *testing.T) {
+	expected := answers[1]
+
+	val := parseGroupedCalorieHeap(data, 1)
+
+	if val[0] != expected {
+		t.Errorf("Answer should be %v, but got %v", expected, val[0])
+	}
+}
+
+func TestExampleTwoHeap(t *testing.T) {
+	expected := answers[2]
+
+	group := parseGroupedCalorieHeap(data, 3)
+
+	val := group[0] + group[1] + group[2]
+
+	if val != expected {
+		t.Errorf("Answer should be %v, but got %v", expected, val)
+	}
+}
+
+var realInput = fileReader("input.txt")
+
+func BenchmarkSort(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		parseGroupedCalorieList(realInput, 3)
+	}
+}
+
+func BenchmarkHeap(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		parseGroupedCalorieHeap(realInput, 3)
 	}
 }

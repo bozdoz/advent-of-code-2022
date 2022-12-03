@@ -35,7 +35,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/bozdoz/advent-of-code-2022/utils"
@@ -47,11 +46,11 @@ type dataType []string
 // how to read today's inputs
 var fileReader = utils.ReadLines
 
-func partOne(data dataType) (ans int, err error) {
+func partOne(data dataType) (ans int) {
 	return
 }
 
-func partTwo(data dataType) (ans int, err error) {
+func partTwo(data dataType) (ans int) {
 	return
 }
 
@@ -63,14 +62,9 @@ func init() {
 // run the solvers
 func main() {
 	filename := utils.GetInputFile()
-	data, err := fileReader(filename)
+	data := fileReader(filename)
 
-	if err != nil {
-		fmt.Println(fmt.Errorf("failed to read file: %s - %w", filename, err))
-		os.Exit(1)
-	}
-
-	fncs := map[string]func(dataType) (int, error){
+	fncs := map[string]func(dataType) int{
 		"partOne": partOne,
 		"partTwo": partTwo,
 	}
@@ -78,12 +72,7 @@ func main() {
 	// run partOne and partTwo
 	for k, fun := range fncs {
 		s := time.Now()
-		val, err := fun(dataType(data))
-
-		if err != nil {
-			fmt.Println(fmt.Errorf("%s failed: %w", k, err))
-			os.Exit(1)
-		}
+		val := fun(dataType(data))
 
 		fmt.Printf("%s: %v (%v)\n", k, val, time.Since(s))
 	}
@@ -103,16 +92,12 @@ var answers = map[int]int{
 	2: 0,
 }
 
-var data, _ = fileReader("example.txt")
+var data = fileReader("example.txt")
 
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
 
-	val, err := partOne(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partOne(dataType(data))
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
@@ -122,11 +107,7 @@ func TestExampleOne(t *testing.T) {
 func TestExampleTwo(t *testing.T) {
 	expected := answers[2]
 
-	val, err := partTwo(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partTwo(dataType(data))
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)

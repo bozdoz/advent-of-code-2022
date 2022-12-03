@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"sort"
 	"time"
 
 	"github.com/bozdoz/advent-of-code-2022/utils"
@@ -16,21 +14,16 @@ type dataType []string
 // how to read today's inputs
 var fileReader = utils.ReadNewLineGroups
 
-func partOne(data dataType) (ans int, err error) {
-	groups := parseGroupedCalorieList(data)
+func partOne(data dataType) (ans int) {
+	groups := parseGroupedCalorieList(data, 1)
 
-	ans = utils.Max(groups...)
+	ans = groups[0]
 
 	return
 }
 
-func partTwo(data dataType) (ans int, err error) {
-	groups := parseGroupedCalorieList(data)
-
-	// DESC
-	sort.Slice(groups, func(i, j int) bool {
-		return groups[i] > groups[j]
-	})
+func partTwo(data dataType) (ans int) {
+	groups := parseGroupedCalorieList(data, 3)
 
 	ans = groups[0] + groups[1] + groups[2]
 
@@ -45,14 +38,9 @@ func init() {
 // run the solvers
 func main() {
 	filename := utils.GetInputFile()
-	data, err := fileReader(filename)
+	data := fileReader(filename)
 
-	if err != nil {
-		fmt.Println(fmt.Errorf("failed to read file: %s - %w", filename, err))
-		os.Exit(1)
-	}
-
-	fncs := map[string]func(dataType) (int, error){
+	fncs := map[string]func(dataType) int{
 		"partOne": partOne,
 		"partTwo": partTwo,
 	}
@@ -60,12 +48,7 @@ func main() {
 	// run partOne and partTwo
 	for k, fun := range fncs {
 		s := time.Now()
-		val, err := fun(dataType(data))
-
-		if err != nil {
-			fmt.Println(fmt.Errorf("%s failed: %w", k, err))
-			os.Exit(1)
-		}
+		val := fun(dataType(data))
 
 		fmt.Printf("%s: %v (%v)\n", k, val, time.Since(s))
 	}
