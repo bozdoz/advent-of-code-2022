@@ -1,5 +1,55 @@
 # What Am I Learning Each Day?
 
+### Day 3
+
+**Difficulty: 1/10**
+
+**Time: ~30 min**
+
+I restructured a bit; really going harder on the notion that I should just call `panic` instead of handling errors. This is not a production app, and this could be cleaner and clearer.
+
+Heavy use of runes to get letter scores:
+
+```go
+// go characters 'a' is 97, but should be 1, and 'A' is 65, and should be 27
+func getLetterScore(l rune) int {
+	out := int(l) - 96
+
+	if out < 0 {
+		out += 58
+	}
+
+	return out
+}
+```
+
+Curious if there was a better way to do this, but there was no way I was going to enum or map that out.
+
+First part I just split each block in halves and iterated one while checking the other:
+
+```go
+first, last := items[:half], items[half:]
+
+for _, letter := range first {
+	if strings.ContainsRune(last, letter) {
+```
+
+I think it reads well, and I'm not sure how else I could have done it.
+
+For the second part I got to use my `types.Set` utility, and I believe this is the first time using a `map` with a `struct{}` value:
+
+```go
+type Set[T comparable] map[T]struct{}
+
+func (set *Set[T]) Add(item T) {
+	(*set)[item] = struct{}{}
+}
+```
+
+I definitely find the syntax rough, so I'm glad to abstract this into its own type.  Note also that I used a generic, which **had** to be `comparable` in order to be used in `map`.
+
+I used a for loop `label`, maybe for the first time, because I did the second part with 3 for loops and a switch statement.  TThe idea was, for the three strings in the group, add all of the first to a set, check the second against the first set and add those to a set, and check the third against the second set, and continue the outmost loop.  Felt pretty simple.
+
 ### Day 2
 
 **Difficulty: 1/10**
@@ -84,3 +134,20 @@ Now I can run `go test ./01`, until eventually I run `go run ./01`, to get the a
 I've also decided I should keep track of my time and difficulty of each day.
 
 Today, I was a bit frustrated just at splitting empty new lines, trimming the last line, then splitting new lines, converting to ints, and summing.  Just a bunch of work to parse the input.
+
+#### Day 1 Update
+
+Added a min heap to day 1 and some benchmark tests to see how bad my sorting implementation was:
+
+```bash
+> go test ./01 -bench=.
+goos: linux
+goarch: amd64
+pkg: github.com/bozdoz/advent-of-code-2022/01
+cpu: Intel(R) Core(TM) i5-8259U CPU @ 2.30GHz
+BenchmarkSort-2            13512             86409 ns/op
+BenchmarkHeap-2            12837             94467 ns/op
+PASS
+```
+
+Doesn't seem that bad: sorting takes 8,000 nanoseconds longer? that's 0.008 milliseconds!
