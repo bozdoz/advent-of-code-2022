@@ -1,5 +1,19 @@
 # What Am I Learning Each Day?
 
+### Day 4
+
+**Difficulty: 0/10**
+
+**Time: ~10 min**
+
+Seems like the easiest puzzle so far.  I was waiting for the catch in part 2; didn't happen.
+
+Just swapped a `contains` check with an `overlaps` check.  Surprisingly simple.
+
+I was thinking today about simplifying the day-*.go files to call a predictable function, like **"parseData"**, since that's a pretty common pattern.
+
+Some duplicate code in the parsers, but I'm usually fine to repeat myself twice.
+
 ### Day 3
 
 **Difficulty: 1/10**
