@@ -14,8 +14,9 @@ type Day[T any] struct {
 
 // abstract boilerplate to run solvers for each day
 func RunSolvers[T any](day Day[T]) {
+	// depth 2 skips this function and the getInputFile function
 	callerDepth := 2
-	inputFile := GetInputFile(callerDepth)
+	inputFile := getInputFile(callerDepth)
 	data := day.FileReader(inputFile)
 
 	for i, fun := range day.Fncs {
