@@ -9,10 +9,18 @@ import (
 const input string = "input.txt"
 
 // get the relative "input.txt" file for a given day
-func GetInputFile() string {
-	// read input relative to the caller that called this file
+func GetInputFile(args ...any) string {
 	// "1" will skip this "getInputFile.go" file
-	_, currentFile, _, _ := runtime.Caller(1)
-	dir := filepath.Dir(currentFile)
+	depth := 1
+
+	if len(args) > 0 {
+		// get a different depth (used in runSolvers.go)
+		depth = args[0].(int)
+	}
+
+	// read input relative to the caller that called this file
+	_, caller, _, _ := runtime.Caller(depth)
+	dir := filepath.Dir(caller)
+
 	return filepath.Join(dir, input)
 }

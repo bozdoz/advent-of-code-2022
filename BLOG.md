@@ -14,6 +14,28 @@ I was thinking today about simplifying the day-*.go files to call a predictable 
 
 Some duplicate code in the parsers, but I'm usually fine to repeat myself twice.
 
+#### Day 4 Update
+
+Abstracting some of the duplicate code to a utility function to `RunSolvers`.  I think this is a pretty good structure, helps for testing in the future, and helps reduce bloated boilerplate:
+
+```go
+// A day is just a file reader and the functions to call
+// with the input content
+type Day[T any] struct {
+	FileReader func(string) T
+	Fncs       []func(T) int
+}
+```
+
+TIL about alias declaration vs type definition:
+
+```go
+type dataType []string // is a type definition
+type dataType = []string // is an alias declaration
+```
+
+With the alias, there's no need for all the conversions I was doing.  So I can reduce duplication, and remove all the conversions!  Also it was necessary to work with the `RunSolvers` function.  This also made me have to alter the `getInputFile` function.  I may need to revisit that to adjust `depth` across the board.
+
 ### Day 3
 
 **Difficulty: 1/10**
@@ -62,7 +84,7 @@ func (set *Set[T]) Add(item T) {
 
 I definitely find the syntax rough, so I'm glad to abstract this into its own type.  Note also that I used a generic, which **had** to be `comparable` in order to be used in `map`.
 
-I used a for loop `label`, maybe for the first time, because I did the second part with 3 for loops and a switch statement.  TThe idea was, for the three strings in the group, add all of the first to a set, check the second against the first set and add those to a set, and check the third against the second set, and continue the outmost loop.  Felt pretty simple.
+I used a for loop `label`, maybe for the first time, because I did the second part with 3 for loops and a switch statement.  The idea was, for the three strings in the group, add all of the first to a set, check the second against the first set and add those to a set, and check the third against the second set, and continue the outmost loop.  Felt pretty simple.
 
 ### Day 2
 
