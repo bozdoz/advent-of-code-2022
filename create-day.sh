@@ -19,7 +19,12 @@ if [ -z $NEW_DAY ]; then
   exit 1
 fi
 
-mkdir $NEW_DAY
+kill() {
+	echo $1
+	exit 1
+}
+
+mkdir $NEW_DAY || kill
 
 cd $NEW_DAY
 
@@ -32,18 +37,12 @@ touch example.txt
 cat > $NEW_DAY_NAME.go <<EOF
 package main
 
-import (
-	"fmt"
-	"log"
-	"time"
-
-	"github.com/bozdoz/advent-of-code-2022/utils"
-)
+import "github.com/bozdoz/advent-of-code-2022/utils"
 
 // today's input data type
-type dataType []string
+type dataType = []string
 
-// how to read today's inputs
+// how to read today's input
 var fileReader = utils.ReadLines
 
 func partOne(data dataType) (ans int) {
@@ -54,28 +53,19 @@ func partTwo(data dataType) (ans int) {
 	return
 }
 
-// initialize the app by setting log flags
-func init() {
-	log.SetFlags(log.Llongfile)
-}
+//
+// BOILERPLATE BELOW
+//
 
-// run the solvers
 func main() {
-	filename := utils.GetInputFile()
-	data := fileReader(filename)
-
-	fncs := map[string]func(dataType) int{
-		"partOne": partOne,
-		"partTwo": partTwo,
-	}
-
-	// run partOne and partTwo
-	for k, fun := range fncs {
-		s := time.Now()
-		val := fun(dataType(data))
-
-		fmt.Printf("%s: %v (%v)\n", k, val, time.Since(s))
-	}
+	// pass file reader and functions to call with input data
+	utils.RunSolvers(utils.Day[dataType]{
+		FileReader: fileReader,
+		Fncs: []func(dataType) int{
+			partOne,
+			partTwo,
+		},
+	})
 }
 
 EOF
@@ -97,7 +87,7 @@ var data = fileReader("example.txt")
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
 
-	val := partOne(dataType(data))
+	val := partOne(data)
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
@@ -107,7 +97,7 @@ func TestExampleOne(t *testing.T) {
 func TestExampleTwo(t *testing.T) {
 	expected := answers[2]
 
-	val := partTwo(dataType(data))
+	val := partTwo(data)
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
