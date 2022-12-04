@@ -13,11 +13,7 @@ var data = fileReader("example.txt")
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
 
-	val, err := partOne(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partOne(data)
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
@@ -27,11 +23,7 @@ func TestExampleOne(t *testing.T) {
 func TestExampleTwo(t *testing.T) {
 	expected := answers[2]
 
-	val, err := partTwo(dataType(data))
-
-	if err != nil {
-		t.Errorf("expected no error, got: %s", err)
-	}
+	val := partTwo(data)
 
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)

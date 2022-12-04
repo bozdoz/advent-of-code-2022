@@ -1,57 +1,34 @@
 package main
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"time"
-
 	"github.com/bozdoz/advent-of-code-2022/utils"
 )
 
 // today's input data type
-type dataType []string
+type dataType = []string
 
 // how to read today's inputs
 var fileReader = utils.ReadLines
 
-func partOne(data dataType) (ans int, err error) {
+func partOne(data dataType) (ans int) {
 	tournament := parseGuide(data)
 
-	return tournament.yourScore, nil
+	return tournament.yourScore
 }
 
-func partTwo(data dataType) (ans int, err error) {
+func partTwo(data dataType) (ans int) {
 	tournament := parseSuggestiveGuide(data)
 
-	return tournament.yourScore, nil
+	return tournament.yourScore
 }
 
-// initialize the app by setting log flags
-func init() {
-	log.SetFlags(log.Llongfile)
-}
-
-// run the solvers
 func main() {
-	filename := utils.GetInputFile()
-	data := fileReader(filename)
-
-	fncs := map[string]func(dataType) (int, error){
-		"partOne": partOne,
-		"partTwo": partTwo,
-	}
-
-	// run partOne and partTwo
-	for k, fun := range fncs {
-		s := time.Now()
-		val, err := fun(dataType(data))
-
-		if err != nil {
-			fmt.Println(fmt.Errorf("%s failed: %w", k, err))
-			os.Exit(1)
-		}
-
-		fmt.Printf("%s: %v (%v)\n", k, val, time.Since(s))
-	}
+	// pass file reader and functions to call with input data
+	utils.RunSolvers(utils.Day[dataType]{
+		FileReader: fileReader,
+		Fncs: []func(dataType) int{
+			partOne,
+			partTwo,
+		},
+	})
 }
