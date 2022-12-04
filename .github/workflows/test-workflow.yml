@@ -17,4 +17,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - run: go test ./... -cover
+      - run: go test ./... -cover -coverprofile ./coverage.out
+      - run: go tool cover -func ./coverage.out | tail -1
