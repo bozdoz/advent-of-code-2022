@@ -28,8 +28,7 @@ func (p *pair) contains(a *pair) bool {
 }
 
 func (p *pair) overlaps(a *pair) bool {
-	return p.min >= a.min && p.min <= a.max ||
-		p.max >= a.max && p.max <= a.max
+	return !(p.max < a.min || p.min > a.max)
 }
 
 func parseSectionContains(data dataType) (sum int) {
