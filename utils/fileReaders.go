@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strconv"
 	"strings"
+	"unicode"
 )
 
 // helper for parsing lines of text from a file
@@ -57,21 +57,16 @@ func ReadFile(file string) (content string) {
 // read lines into []int
 func ReadInts(file string) (content []int) {
 	return ReadLinesFunc(file, func(s string) int {
-		as_int, err := strconv.Atoi(s)
-
-		if err != nil {
-			panic(err)
-		}
-
-		return as_int
+		return ParseInt(s)
 	})
 }
 
-// splits and trims file to return new-line-separated groups
-func ReadNewLineGroups(file string) (content []string) {
+// splits and trims file to return empty-new-line-separated groups
+func ReadEmptyLineGroups(file string) (content []string) {
 	data := ReadFile(file)
 
-	content = strings.Split(strings.TrimSpace(string(data)), "\n\n")
+	// only trim the end of the document
+	data = strings.TrimRightFunc(data, unicode.IsSpace)
 
-	return
+	return strings.Split(data, "\n\n")
 }

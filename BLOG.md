@@ -1,5 +1,73 @@
 # What Am I Learning Each Day?
 
+### Day 5
+
+**Difficulty: 4/10**
+
+**Time: ~60 min**
+
+Parsing was annoying today.  I also went back and forth about how to add the data to the data structure, and how to process it.  Seemed easiest to parse the data in reverse order:
+
+```go
+lines := strings.Split(drawing, "\n")
+
+// -2 because we omit the stack numbers
+for i := len(lines) - 2; i >= 0; i-- {
+	// we can ignore trailing space
+	v := strings.TrimRightFunc(lines[i], unicode.IsSpace)
+
+	for j := 0; j < len(v); j += 4 {
+		// get letter inside of "[]"
+		letter := v[j+1]
+
+		if letter != space {
+			stack := j / 4
+			// map initialization continues to be annoying
+			_, ok := (*stacks)[stack]
+
+			if !ok {
+				(*stacks)[stack] = &crates{}
+			}
+
+			(*stacks)[stack].push(letter)
+		}
+	}
+}
+```
+
+The map initialization continues to bother me.  Everytime I have a nested data structure, with pointers, I have this pain where I have to check that maps or arrays are initialized, or `nil`.  It's likely that I could have gotten away with avoiding pointers.  Not really interested in going back to refactor to find out.
+
+I implemented a remove and add function for the crates:
+
+```go
+type crates []byte
+
+func (c *crates) pop() byte {
+	old := *c
+	n := len(old)
+	out := old[n-1]
+	*c = old[0 : n-1]
+
+	return out
+}
+
+func (c *crates) push(b byte) {
+	*c = append(*c, b)
+}
+```
+
+And a function to move slices of crates:
+
+```go
+// move
+l := len(*getFrom)
+*addTo = append(*addTo, (*getFrom)[l-num:l]...)
+// remove
+*getFrom = (*getFrom)[:l-num]
+```
+
+Also, this is the first day that doesn't output `int` type; which forced me to redo my generic `runSolvers` already.
+
 ### Day 4
 
 **Difficulty: 0/10**
