@@ -7,13 +7,13 @@ import (
 
 // A day is just a file reader and the functions to call
 // with the input content
-type Day[T any] struct {
+type Day[T any, O any] struct {
 	FileReader func(string) T
-	Fncs       []func(T) int
+	Fncs       []func(T) O
 }
 
 // abstract boilerplate to run solvers for each day
-func RunSolvers[T any](day Day[T]) {
+func RunSolvers[T any, O any](day Day[T, O]) {
 	// depth 2 skips this function and the getInputFile function
 	callerDepth := 2
 	inputFile := getInputFile(callerDepth)

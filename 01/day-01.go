@@ -8,7 +8,7 @@ import (
 type dataType = []string
 
 // how to read today's inputs
-var fileReader = utils.ReadNewLineGroups
+var fileReader = utils.ReadEmptyLineGroups
 
 func partOne(data dataType) (ans int) {
 	groups := parseGroupedCalorieList(data, 1)
@@ -28,7 +28,7 @@ func partTwo(data dataType) (ans int) {
 
 func main() {
 	// pass file reader and functions to call with input data
-	utils.RunSolvers(utils.Day[dataType]{
+	utils.RunSolvers(utils.Day[dataType, int]{
 		FileReader: fileReader,
 		Fncs: []func(dataType) int{
 			partOne,

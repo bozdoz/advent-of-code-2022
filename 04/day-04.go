@@ -22,7 +22,7 @@ func partTwo(data dataType) (ans int) {
 
 func main() {
 	// pass file reader and functions to call with input data
-	utils.RunSolvers(utils.Day[dataType]{
+	utils.RunSolvers(utils.Day[dataType, int]{
 		FileReader: fileReader,
 		Fncs: []func(dataType) int{
 			partOne,
