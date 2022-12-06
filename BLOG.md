@@ -1,8 +1,78 @@
 # What Am I Learning Each Day?
 
+### Day 6
+
+**Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
+
+**Time: ~40 min**
+
+For a brief moment, I thought about getting the first four letters and comparing them:
+
+```go
+a, b, c, d := data[i], data[i+1], data[i+2], data[i+3]
+```
+
+Until, obviously, I knew this would be a pain, even for 4 letters.
+
+This is the **first time** I've used a doubly-linked list, with `container/list`, and also the **first time** declaring multiple variables in a for loop:
+
+```go
+var l *list.List
+
+cur := data[i]
+
+// check if current is in list already, moving backwards
+for e, j := l.Back(), l.Len(); e != nil; e, j = e.Prev(), j-1 {
+	if e.Value == cur {
+		// match means we need to clean the list
+		removeFront(l, j)
+
+		// add element
+		l.PushBack(cur)
+		continue outer
+	}
+}
+```
+
+The syntax is a little awkward, but somewhat similar to other languages:
+
+```go
+e, j := l.Back(), l.Len()
+```
+
+I liked using the list package, since it helped me avoid writing `Push` and `Pop` methods, or dealing with slice/array memory allocation issues (even though I knew the capacity of the list could only be 4-1 or 14-1).
+
+I did another for loop label, which makes me wonder if I'm getting lazy...
+
+Apparently today is the first day I've used `t.Run` in tests:
+
+```go
+runs := map[string]int{
+	"bvwbjplbgvbhsrlpgdmjqwftvncz":      5,
+	"nppdvjthqldpwncqszvftbrmjlhg":      6,
+	"nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg": 10,
+	"zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw":  11,
+}
+
+for k, v := range runs {
+	t.Run(fmt.Sprintf("%q should be %d", k, v), func(t *testing.T) {
+```
+
+So, doing this, we can have multiple test cases inside of a test suite (parent function).
+
+The timing of today's puzzle seemed good too:
+
+```bash
+> go run ./06
+1 | 1282 (99.665µs)
+2 | 3513 (507.232µs)
+```
+
+From matching 4 sequential chars to 14 was only ~5 times slower.
+
 ### Day 5
 
-**Difficulty: 4/10**
+**Difficulty: 4/10** ★★★★☆☆☆☆☆☆
 
 **Time: ~60 min**
 
@@ -140,7 +210,7 @@ for _, letter := range first {
 
 I think it reads well, and I'm not sure how else I could have done it.
 
-For the second part I got to use my `types.Set` utility, and I believe this is the first time using a `map` with a `struct{}` value:
+For the second part I got to use my `types.Set` utility, and I believe this is the **first time** using a `map` with a `struct{}` value:
 
 ```go
 type Set[T comparable] map[T]struct{}
@@ -152,7 +222,7 @@ func (set *Set[T]) Add(item T) {
 
 I definitely find the syntax rough, so I'm glad to abstract this into its own type.  Note also that I used a generic, which **had** to be `comparable` in order to be used in `map`.
 
-I used a for loop `label`, maybe for the first time, because I did the second part with 3 for loops and a switch statement.  The idea was, for the three strings in the group, add all of the first to a set, check the second against the first set and add those to a set, and check the third against the second set, and continue the outmost loop.  Felt pretty simple.
+I used a for loop `label`, maybe for the **first time**, because I did the second part with 3 for loops and a switch statement.  The idea was, for the three strings in the group, add all of the first to a set, check the second against the first set and add those to a set, and check the third against the second set, and continue the outmost loop.  Felt pretty simple.
 
 ### Day 2
 
