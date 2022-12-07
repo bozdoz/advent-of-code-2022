@@ -1,5 +1,28 @@
 # What Am I Learning Each Day?
 
+### Day 7
+
+**Difficulty: 3/10** ★★★☆☆☆☆☆☆☆
+
+**Time: ~60 min**
+
+Today was mostly challenging to create a directory structure.  I kind of anticipated far too many issues that probbaly never came up (multple `ls` calls, multiple `cd` calls, inaccurate `cd` calls, etc).
+
+I think I had a bit too much duplication, but not too bad.  The entire parser felt quite straight-forward, and I didn't really have any errors going through it.
+
+I created a custom type, which I think helped quite a bit:
+
+```go
+type dir []*entry
+
+func (*dir).current() *entry
+func (*dir).move(dir string) *entry
+```
+
+As I mentioned above, I could have returned an `error` in `move` if the directory was invalid.
+
+Again, I'm puzzled why the Part 2's haven't been more challenging than the Part 1's, but maybe it's because of how much I'm anticipating issues.
+
 ### Day 6
 
 **Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
@@ -140,7 +163,7 @@ Also, this is the first day that doesn't output `int` type; which forced me to r
 
 ### Day 4
 
-**Difficulty: 0/10**
+**Difficulty: 0/10** ☆☆☆☆☆☆☆☆☆☆
 
 **Time: ~10 min**
 
@@ -176,7 +199,7 @@ With the alias, there's no need for all the conversions I was doing.  So I can r
 
 ### Day 3
 
-**Difficulty: 1/10**
+**Difficulty: 1/10** ★☆☆☆☆☆☆☆☆☆
 
 **Time: ~30 min**
 
@@ -226,7 +249,7 @@ I used a for loop `label`, maybe for the **first time**, because I did the secon
 
 ### Day 2
 
-**Difficulty: 1/10**
+**Difficulty: 1/10** ★☆☆☆☆☆☆☆☆☆
 
 **Time: ~20 min**
 
@@ -267,7 +290,7 @@ Didn't spend any time on utilities, or the test, or in the `day-02.go` file; so 
 
 ### Day 1
 
-**Difficulty: 1/10**
+**Difficulty: 1/10** ★☆☆☆☆☆☆☆☆☆
 
 **Time: ~15 min**
 
