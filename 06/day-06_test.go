@@ -15,7 +15,7 @@ func TestExampleOne(t *testing.T) {
 
 	for k, v := range runs {
 		t.Run(fmt.Sprintf("%q should be %d", k, v), func(t *testing.T) {
-			val := uniqueLettersIndex(k, 4)
+			val := partOne(k)
 
 			if val != v {
 				t.Errorf("Answer should be %v, but got %v", v, val)
@@ -35,7 +35,7 @@ func TestExampleTwo(t *testing.T) {
 
 	for k, v := range runs {
 		t.Run(fmt.Sprintf("%q should be %d", k, v), func(t *testing.T) {
-			val := uniqueLettersIndex(k, 14)
+			val := partTwo(k)
 
 			if val != v {
 				t.Errorf("Answer should be %v, but got %v", v, val)
