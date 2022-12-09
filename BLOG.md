@@ -1,5 +1,70 @@
 # What Am I Learning Each Day?
 
+### Day 8
+
+**Difficulty: 4/10** ★★★★☆☆☆☆☆☆
+
+**Time: ~60 min**
+
+Today got me mostly by appearing challenging.  I thought it was going to do one of those "Now extrapolate the data 10 times in every direction!"  But today was also a lot of duplication.
+
+Today was the first grid.  I maintained a row-column approach, and may later move this grid to a common type.
+
+I also named custom types prefixed by "T", because I've been having an annoying time naming variables like:
+
+```go
+type grid [][]int
+
+// bleeeeeecch
+var grid grid
+```
+
+I used a `rune` to set the base of the stringified numbers in the input data:
+
+```go
+// used for converting rune to int
+const zero rune = '0'
+
+// ...
+grid[r][c] = int(char - zero)
+```
+
+I assume this is more performant than `strconv.Atoi`, but what do I know?
+
+I also updated `types.Set` to take an arbitrary number of items:
+
+```go
+func (set *Set[T]) Add(items ...T) {
+	for _, item := range items {
+		(*set)[item] = struct{}{}
+	}
+}
+```
+
+And this didn't affect the other implementations, which is great.
+
+I also was highly tempted to run a function inside a for loop, because of all the duplication:
+
+```go
+for i := r + 1; ; i++ {
+	if should_break(i, c, i == g.height-1) {
+		break
+	}
+}
+```
+
+something like:
+
+```go
+for i := r + 1; !should_break(i, c, i == g.height-1); i++ {
+}
+```
+
+but I worried that I'd get calls about this.
+
+I mean, already it's a ridiculously named function, that's only meant to de-duplicate the tree height checking, score accumulator.  Anyway...
+
+
 ### Day 7
 
 **Difficulty: 3/10** ★★★☆☆☆☆☆☆☆

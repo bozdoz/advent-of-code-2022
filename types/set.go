@@ -2,8 +2,10 @@ package types
 
 type Set[T comparable] map[T]struct{}
 
-func (set *Set[T]) Add(item T) {
-	(*set)[item] = struct{}{}
+func (set *Set[T]) Add(items ...T) {
+	for _, item := range items {
+		(*set)[item] = struct{}{}
+	}
 }
 
 func (set *Set[T]) Delete(item T) {
