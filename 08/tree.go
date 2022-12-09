@@ -45,16 +45,6 @@ func (g *Ttrees) countVisible() int {
 	// set of any visible trees with key "rowcol"
 	visible := types.Set[string]{}
 
-	// add edges (assumes square)
-	for i := 0; i < g.width; i++ {
-		visible.Add(
-			fmt.Sprint(0, i),          // top
-			fmt.Sprint(i, g.width-1),  // right
-			fmt.Sprint(g.height-1, i), // bottom
-			fmt.Sprint(i, 0),          // left
-		)
-	}
-
 	check_height := func(r, c, max int) int {
 		tree_height := g.grid[r][c]
 		if tree_height > max {
@@ -97,7 +87,10 @@ func (g *Ttrees) countVisible() int {
 		}
 	}
 
-	return len(visible)
+	// include edges (top, bottom, left, right)
+	edges := g.height*2 + (g.width-2)*2
+
+	return len(visible) + edges
 }
 
 // scenic score is measured by how many trees can be seen by a given tree
