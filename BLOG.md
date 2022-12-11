@@ -1,5 +1,49 @@
 # What Am I Learning Each Day?
 
+### Day 9
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~120+ min**
+
+I'm at a complete loss with part 2.  This is a day where the examples and explanation doesn't seem to cover it. In particular, I'm looking at the deliberately unexplained diagram for "Up 8":
+
+```
+.........H..
+.........1..
+.........2..
+.........3..
+........54..
+.......6....
+......7.....
+.....8......
+....9.......
+```
+
+And wondering how on earth "5" is adjacent to "4", since that would never happen on a two-node rope.  So the explanation just doesn't seem to suffice for part 2, and I will have to take time to think on this, or seek out an answer elsewhere.
+
+The only warning given was "*be careful: more types of motion are possible than before*".
+
+Blech. I played around with some snake games and videos posted to reddit, and found this reddit solution which gaave me my answer:
+
+https://github.com/EbbDrop/AoCropeSnake/blob/main/src/main.rs#L19-L24
+
+And this:
+
+https://docs.rs/num/latest/num/fn.signum.html
+
+Which I already had a function for.
+
+I guess I can also say today is the first time I've used `image.Point`, as it is a 2d vector type with basic methods for adding and subtracting.  Easier than writing my own I think, barely.
+
+Dealing with the linked list today was a little difficult, as I had values that repeatedly needed updating, so I had to cast back to its original value type:
+
+```go
+prevPoint := prev.Value.(image.Point)
+curPoint := cur.Value.(image.Point)
+diff := prevPoint.Sub(curPoint)
+```
+
 ### Day 8
 
 **Difficulty: 4/10** ★★★★☆☆☆☆☆☆
