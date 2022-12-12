@@ -1,10 +1,20 @@
 # What Am I Learning Each Day?
 
+### Day 10
+
+**Difficulty: 5/10** ★★★★★☆☆☆☆☆
+
+**Time: ~60 min**
+
+Some issues with understanding the puzzle, but seemed vastly easy compared to understanding the rope movement of Day 9.  
+
+Somehow I had issues with tests.  I had a program test that succeeded individually, but not when I run the ExampleOne test. So I must have some issue with parallelism that I might want to sort out eventually.
+
 ### Day 9
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
 
-**Time: ~120+ min**
+**Time: ~180 min**
 
 I'm at a complete loss with part 2.  This is a day where the examples and explanation doesn't seem to cover it. In particular, I'm looking at the deliberately unexplained diagram for "Up 8":
 
@@ -42,6 +52,12 @@ Dealing with the linked list today was a little difficult, as I had values that 
 prevPoint := prev.Value.(image.Point)
 curPoint := cur.Value.(image.Point)
 diff := prevPoint.Sub(curPoint)
+```
+
+I also updated a string character by index with:
+
+```go
+out[y] = out[y][0:x] + label + out[y][x+1:]
 ```
 
 ### Day 8
