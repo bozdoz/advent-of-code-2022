@@ -102,7 +102,7 @@ func (rope *Rope) move(position image.Point) {
 
 			if diff.Eq(zero) {
 				// tail stopped moving
-				return
+				break
 			}
 
 			if utils.Abs(diff.X) > 1 || utils.Abs(diff.Y) > 1 {
