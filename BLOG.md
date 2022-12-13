@@ -1,5 +1,38 @@
 # What Am I Learning Each Day?
 
+### Day 11
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~150 min**
+
+Part one was easy, but Part Two I did not understand.  I roughly know about modulus, and I was pointed in the direction of **Chinese Remainder theorem**, but I did not understand the application of it.  I also have to look up **pairwise coprime**.
+
+I found the input parsing very lazy today.
+
+Lots of this: 
+
+```go
+op := line[len("  Operation: new = "):]
+```
+
+I also ran into an issue where `val^2` apparently doesn't equal `val*val`, so I had to use math.Pow, which is always super annoying:
+
+```go
+case EXPONENT:
+	val = int(math.Pow(float64(val), float64(monkey.operationNum)))
+```
+
+I think this is the **first time** I used a `for range` loop:
+
+```go
+for range [10000]struct{}{} {
+	monkeys.inspect(2)
+}
+```
+
+Maybe dumb.
+
 ### Day 10
 
 **Difficulty: 5/10** ★★★★★☆☆☆☆☆
