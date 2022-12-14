@@ -14,13 +14,25 @@ type signed interface {
 func Max[T numeric](nums ...T) T {
 	max := nums[0]
 
-	for _, val := range nums {
+	for _, val := range nums[1:] {
 		if val > max {
 			max = val
 		}
 	}
 
 	return max
+}
+
+func Min[T numeric](nums ...T) T {
+	min := nums[0]
+
+	for _, val := range nums[1:] {
+		if val < min {
+			min = val
+		}
+	}
+
+	return min
 }
 
 func Abs[T signed](num T) T {

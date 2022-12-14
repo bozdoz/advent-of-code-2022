@@ -1,5 +1,57 @@
 # What Am I Learning Each Day?
 
+### Day 12
+
+**Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
+
+**Time: ~45 min**
+
+Today I copied from [2021 Day 15](https://github.com/bozdoz/advent-of-code-2021/blob/main/15/cave.go), where I first used **Dijkstra's algorithm**, with some improvements:
+
+1. removed the `start` field in the grid struct (start is any cell with distance==0)
+2. way better at iterating and creating a grid now
+3. used maxint instead of `height * width * 10`, or `math.Inf()`; got maxint from stackoverflow: `const max = int(^uint(0) >> 1)`
+
+One thing I kept identical was the `updateNeighbours` function.
+
+The priority queue I kept mostly similar, except the logic of the puzzle has changed slightly (which is why I found today's puzzle vastly simple).
+
+```go
+if neighbour.visited || neighbour.height-square.height > 1 {
+	// already visited, or
+	// we can only walk up a square at most 1 higher
+	continue
+}
+
+// update dijkstra's distance
+neighbour.distance = utils.Min(
+	// we've walked one extra step (+1)
+	square.distance+1,
+	neighbour.distance,
+)
+```
+
+The first change is that we can only walk up a square that's at most 1 higher than our current; and the second change is that the distance just increases by 1 each square. Otherwise, it's about the same as 2021 Day 15.
+
+For Part 2, I again threw a `part` flag on the parser function, and added a small if statement:
+
+```go
+if part == 2 && char == 'a' {
+	// all a's are starting spots
+	square.distance = 0
+}
+```
+
+I was also giving up on prefixing types with "T":
+
+```go
+square := &square{
+	distance: max,
+}
+```
+
+Instead, I'm doing what I have feared, and naming variables identical to their types, because it's frustrating to come up with unique names for each.
+
 ### Day 11
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
