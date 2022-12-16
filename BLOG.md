@@ -1,5 +1,38 @@
 # What Am I Learning Each Day?
 
+### Day 13
+
+**Difficulty: 6/10** ★★★★★★☆☆☆☆
+
+**Time: ~4 hrs**
+
+Did a lot of `go test -run TestSorted -timeout 800us ./13`.  I was having a hard time parsing (partially because I borrowed code from last year's [Day 18](https://github.com/bozdoz/advent-of-code-2021/blob/7851692ea585dac1a2c139dc65755926d58d0bbb/18/pair.go)).  The parsing was surprisingly difficult, as I kept having issues with slices of `any`, pointers to slices of `any`, and copying of slices of `any` to pointers.
+
+**First time** using `recover`, because I had to debug why my type assertions were failing:
+
+```go
+// catch panics just in case the type assertions are incorrect
+defer func() {
+	if rec := recover(); rec != nil {
+		log.Printf("panic: (a) %[1]T %[1]v (b) %[2]T %[2]v\n", a, b)
+	}
+}()
+```
+
+**First time** I think using the type assertions (maybe called something else), instead of type switches (also maybe called something else):
+
+```go
+// figure out types
+aAsInt, aok := a.(int)
+bAsInt, bok := b.(int)
+
+// quality variable names here
+if aok && bok {
+	// BOTH INTS
+```
+
+Copied over types.Stack from last year's solutons too.
+
 ### Day 12
 
 **Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
