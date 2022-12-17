@@ -60,6 +60,7 @@ func partTwo(data inType) (ans outType) {
 	// multiplier
 	ans = 1
 
+	// not sure how else to determine where the dividers are
 	pointerOne := fmt.Sprintf("%p", one)
 	pointerTwo := fmt.Sprintf("%p", two)
 

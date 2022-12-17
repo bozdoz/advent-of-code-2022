@@ -1,5 +1,83 @@
 # What Am I Learning Each Day?
 
+### Day 14
+
+**Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
+
+**Time: ~60 min**
+
+First run:
+
+```sh
+1 | 774 (5.421103ms)
+2 | 22499 (267.526678ms)
+```
+
+First data structure:
+
+```go
+// TODO: maybe these can just be generic "obstacles"
+type rocks = types.Set[image.Point]
+type sand = types.Set[image.Point]
+
+type area struct {
+	rocks  rocks
+	sand   sand
+	bottom int
+	isFull bool
+}
+```
+
+After minor refactor (**~2x faster**): 
+
+```sh
+1 | 774 (3.31752ms)
+2 | 22499 (134.481686ms)
+```
+
+With simplified data structure:
+
+```go
+type obstacle = types.Set[image.Point]
+
+type area struct {
+	obstacle obstacle
+	bottom   int
+}
+```
+
+This helps by preventing maintaining/checking of two separate Sets.  For the answer, instead of returning `len(area.sand)`, we can just count iterations of `area.dropSand()`:
+
+```go
+for area.dropSand() != nil {
+	ans++
+}
+```
+
+I also enjoyed using go routines and `time.After` to prevent infinite loops while developing/testing, doing a timeout function for the **first time**, maybe using `select` for the **first time**:
+
+```go
+// prevent infinite loops
+done := make(chan bool)
+go func() {
+	select {
+	case <-time.After(100 * time.Millisecond):
+		fmt.Println("--- timeout! ---")
+		os.Exit(1)
+	case <-done:
+	}
+}()
+
+for area.dropSand() != nil {
+	ans++
+}
+
+// stop timeout
+done <- true
+```
+
+Overall quite a fun puzzle I think.  Quite straightforward and understandable.  No tricks.  No surprises.  Not much of a challenge, but interesting to implement.  Love the idea of collision detection, due to interest in video games.  The End.
+
 ### Day 13
 
 **Difficulty: 6/10** ★★★★★★☆☆☆☆
