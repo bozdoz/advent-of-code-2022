@@ -52,36 +52,11 @@ func parseInput(data inType, nodes int) Rope {
 	return rope
 }
 
-// convert vector into a sign vector
-// ex: {4,0} -> {1,0} and {0,-4} -> {0,-1}
-func getSign(point image.Point) image.Point {
-	x := point.X
-	y := point.Y
-
-	if x != 0 {
-		if x < 0 {
-			x /= -x
-		} else {
-			x /= x
-		}
-	}
-
-	if y != 0 {
-		if y < 0 {
-			y /= -y
-		} else {
-			y /= y
-		}
-	}
-
-	return image.Point{x, y}
-}
-
 var zero = image.Point{0, 0}
 
 // head moves, tail follows, in some way
 func (rope *Rope) move(position image.Point) {
-	step := getSign(position)
+	step := utils.GetSignPoint(position)
 
 	// move in steps
 	for !position.Eq(zero) {
@@ -107,7 +82,7 @@ func (rope *Rope) move(position image.Point) {
 
 			if utils.Abs(diff.X) > 1 || utils.Abs(diff.Y) > 1 {
 				// tail plays catch up
-				cur.Value = curPoint.Add(getSign(diff))
+				cur.Value = curPoint.Add(utils.GetSignPoint(diff))
 			}
 
 			prev = cur

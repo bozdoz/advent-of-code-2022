@@ -88,30 +88,39 @@ func parseItem(data string) []item {
 	}
 }
 
-func (pair *pair) isOrdered() bool {
-	// compare left vs right
-	for i := 0; i < len(pair.left); i++ {
-		if i == len(pair.right) {
+// compare two lists (left vs right);
+// returns -1 if l < r, 0 if l == r, and 1 if l > r
+func compareLists(l, r []item) int {
+	for i := 0; i < len(l); i++ {
+		if i == len(r) {
 			// left has more than right
-			return false
+			return 1
 		}
 
-		l := pair.left[i]
-		r := pair.right[i]
-
-		switch compare(l, r) {
+		switch compare(l[i], r[i]) {
 		case -1: // l < r
-			return true
+			return -1
 		case 0: // l == r
 			continue
 		case 1: // l > r
-			return false
+			return 1
 		}
 	}
 
-	return true
+	if len(l) < len(r) {
+		return -1
+	}
+
+	return 0
 }
 
+// whether left is less than or equal to right-side
+func (pair *pair) isOrdered() bool {
+	return compareLists(pair.left, pair.right) < 1
+}
+
+// compare either []any or int, in any combination
+// returns -1 if l < r, 0 if l == r, and 1 if l > r
 func compare(a, b item) int {
 	log.Printf("-- compare %v and %v\n", a, b)
 
@@ -146,34 +155,8 @@ func compare(a, b item) int {
 		log.Println("both slices")
 		aList := a.([]item)
 		bList := b.([]item)
-		// we need to iterate I guess
-		// TODO: this for loop is similar to the one in isOrdered
-		for i := 0; i < len(aList); i++ {
-			log.Println("reading", i)
-			if i == len(bList) {
-				// left has more than right
-				return 1
-			}
 
-			l := aList[i]
-			r := bList[i]
-
-			switch compare(l, r) {
-			case -1: // l < r
-				return -1
-			case 0: // l == r
-				continue
-			case 1: // l > r
-				return 1
-			}
-		}
-		// slices are equal
-		if len(aList) < len(bList) {
-			log.Println("a slice less than b slice")
-			return -1
-		}
-		log.Println("equal slices", aList, bList)
-		return 0
+		return compareLists(aList, bList)
 	}
 
 	// ONLY ONE IS A SLICE
