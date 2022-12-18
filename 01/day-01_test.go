@@ -52,16 +52,16 @@ func TestExampleTwoHeap(t *testing.T) {
 	}
 }
 
-var realInput = fileReader("input.txt")
+var exampleTwo = fileReader("example-large.txt")
 
 func BenchmarkSort(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		parseGroupedCalorieList(realInput, 3)
+		parseGroupedCalorieList(exampleTwo, 3)
 	}
 }
 
 func BenchmarkHeap(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		parseGroupedCalorieHeap(realInput, 3)
+		parseGroupedCalorieHeap(exampleTwo, 3)
 	}
 }
