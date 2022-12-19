@@ -1,5 +1,94 @@
 # What Am I Learning Each Day?
 
+### Day 15
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~3 hrs**
+
+Finally successful at:
+
+```sh
+1 | 5809294 (392.930042ms)
+2 | 10693731308112 (121.933359ms)
+```
+
+Tried removing the sensor sorting, and got *worse*—almost 2x worse—performance (388.931311ms).
+
+```go
+// start with most touched sensor
+sort.Slice(sensors, func(i, j int) bool {
+	return sensors[i].touches > sensors[j].touches
+})
+```
+
+Obviously, this brute-force was going to take too long; but I did try to at least chunk the search into quadrants:
+
+```go
+scanArea := func(xmin, xmax, ymin, ymax int) {
+	for x := xmin; x <= xmax; x++ {
+		for y := ymin; y <= ymax; y++ {
+			// check if x,y is definitely not a beacon
+			// but also definitely not a scanned beacon
+			if space.beacons.Has(image.Point{x, y}) {
+				continue
+			}
+			if space.couldBeBeacon(x, y) {
+				done <- image.Point{x, y}
+			}
+		}
+	}
+}
+
+// run the scanner at four spots, in four quadrants
+go scanArea(space.xmin, space.xmax/2, space.ymin, space.ymax/2)
+go scanArea(space.xmin, space.xmax/2, space.ymax/2, space.ymax)
+go scanArea(space.xmax/2, space.xmax, space.ymin, space.ymax/2)
+go scanArea(space.xmax/2, space.xmax, space.ymax/2, space.ymax)
+
+i := 0
+for {
+	select {
+	// sanity check stdout
+	case <-time.After(1 * time.Second):
+		i++
+		fmt.Printf("%d... ", i)
+	case point := <-done:
+		fmt.Println("found", point)
+		return point.X*4000000 + point.Y
+	}
+}
+```
+
+This year, I felt like I finally *understood* Manhattan Distance; like I wouldn't need to look up the formula again.  Last year, I remember adding it to a solution, because I was frantically trying suggestions from reddit.
+
+Today I felt quite confident adding channels and goroutines.  Added similar `for...select` loops as yesterday, to track infinite loops, but I also added a goroutine just to avoid dealing with return values; I like the concept of just calling a function, and saying: "just tell this channel when you're done"...:
+
+```go
+// maybe lazy: passing channel to avoid checking return values
+found := make(chan image.Point)
+
+// need a goroutine for channel to receive the value
+go func() {
+	for _, sensor := range sensors {
+		space.scanClockwise(sensor, found)
+	}
+}()
+
+return <-found
+```
+
+Otherwise, I was worried of writing `scanClockwise` like this:
+
+```go
+func (space *space) scanClockwise(sensor *sensor) (point image.Point, found bool) {
+	// didn't find it, most of the time
+	return image.Point{}, false
+}
+```
+
+And then checking that `bool` value on each iteration.  Seemed cleaner (and maybe idiomatic) to just wait for a value to be sent to the channel.
+
 ### Day 14
 
 **Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
@@ -240,7 +329,7 @@ https://docs.rs/num/latest/num/fn.signum.html
 
 Which I already had a function for.
 
-I guess I can also say today is the first time I've used `image.Point`, as it is a 2d vector type with basic methods for adding and subtracting.  Easier than writing my own I think, barely.
+I guess I can also say today is the **first time** I've used `image.Point`, as it is a 2d vector type with basic methods for adding and subtracting.  Easier than writing my own I think, barely.
 
 Dealing with the linked list today was a little difficult, as I had values that repeatedly needed updating, so I had to cast back to its original value type:
 
