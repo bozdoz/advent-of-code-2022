@@ -1,5 +1,12 @@
 # What Am I Learning Each Day?
 
+### Day 16
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~2 hrs**
+
+
 ### Day 15
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆

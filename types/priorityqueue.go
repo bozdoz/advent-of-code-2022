@@ -26,6 +26,17 @@ func (pq *PriorityQueue[T]) NewItem(value *T, priority, index int) {
 	}
 }
 
+// sets index automatically
+func (pq *PriorityQueue[T]) PushValue(value *T, priority int) {
+	newItem := &Item[T]{
+		value,
+		priority,
+		0,
+	}
+
+	pq.Push(newItem)
+}
+
 func (pq PriorityQueue[T]) Len() int { return len(pq) }
 
 func (pq PriorityQueue[T]) Less(i, j int) bool {

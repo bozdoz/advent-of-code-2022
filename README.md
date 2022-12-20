@@ -1,5 +1,7 @@
 # AOC 2022
 
+Continuing the tradition from 2021 - https://github.com/bozdoz/advent-of-code-2021
+
 ### How to use
 
 Test: `docker run --rm $(docker build -q .)`
