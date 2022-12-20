@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"flag"
 	"fmt"
 	"time"
 )
@@ -19,7 +20,25 @@ func RunSolvers[T any, O any](day Day[T, O]) {
 	inputFile := getInputFile(callerDepth)
 	data := day.FileReader(inputFile)
 
-	for i, fun := range day.Fncs {
+	var part int
+	flag.IntVar(&part, "part", 0, "Which part to run in isolation")
+
+	// parse flags from command line
+	flag.Parse()
+
+	var fun func(T) O
+	var i int
+
+	fncs := day.Fncs
+
+	// output
+	if part > 0 {
+		fmt.Println("running part", part)
+		fncs = fncs[part-1 : part]
+		i = part - 1
+	}
+
+	for _, fun = range fncs {
 		s := time.Now()
 		val := fun(data)
 
