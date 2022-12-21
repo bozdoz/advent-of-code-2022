@@ -42,14 +42,25 @@ func parseInput(data inType) map[string]valve {
 // copied the idea from: https://github.com/bozdoz/advent-of-code-2021/blob/354349e4943eba626edd877507c85f5df25d235b/23/shuffle.go
 
 type state struct {
+	time, pressure int
 	position       string
 	valvesOpen     types.Set[string]
-	time, pressure int
 }
 
-func start(valves map[string]valve) (max int) {
+func start(valves map[string]valve, time int) (max int, bestDuoPaths map[string]int) {
 	// part 1 cache hits = 56K
 	cached := map[string]int{}
+
+	// keep track of all viable "solution" states, for part 2?
+	bestDuoPaths = map[string]int{}
+
+	var viableValveCount float64
+
+	for _, valve := range valves {
+		if valve.flow > 0 {
+			viableValveCount++
+		}
+	}
 
 	// then priority queue of next states
 	pq := types.PriorityQueue[state]{}
@@ -62,18 +73,37 @@ func start(valves map[string]valve) (max int) {
 	for pq.Len() > 0 {
 		state := pq.Get()
 
-		if state.time == 30-1 {
+		if state.time == time-1 {
 			// we're done
 
-			// update `max`
+			// update `max` for part 1
 			if state.pressure > max {
 				max = state.pressure
+			}
+
+			// update allPaths for part 2
+			// logic here is that if there are 2 of us, we should each open ~50%
+			percentOpen := float64(len(state.valvesOpen)) / viableValveCount
+
+			// test passes with 40% and 60%, but
+			// actual puzzle does not pass after 8 seconds:
+			// 		bestDuoPath Count: 146
+			// trying 30% and 70% with actual puzzle worked:
+			// 		bestDuoPath Count: 2422
+			if percentOpen > 0.3 && percentOpen < 0.7 {
+				// we can cache here again on valvesOpen, and update max(pressure)
+				key := state.hashValvesOpen()
+				pathPressure, ok := bestDuoPaths[key]
+
+				if !ok || state.pressure > pathPressure {
+					bestDuoPaths[key] = state.pressure
+				}
 			}
 
 			continue
 		}
 
-		nextStates := getNextStates(state, valves)
+		nextStates := getNextStates(*state, valves)
 
 		// push states to pq
 		for i := range nextStates {
@@ -81,7 +111,7 @@ func start(valves map[string]valve) (max int) {
 			key := next.hash()
 
 			pressure, ok := cached[key]
-			isBetter := ok && (pressure < next.pressure)
+			isBetter := pressure < next.pressure
 
 			if !ok || isBetter {
 				cached[key] = next.pressure
@@ -92,19 +122,19 @@ func start(valves map[string]valve) (max int) {
 
 			// not sure what priority to give here
 			// this PQ is in ASC order 🤷‍♀️
-			pq.PushValue(next, -next.pressure)
+			pq.PushValue(&next, -next.pressure)
 		}
 	}
 
 	return
 }
 
-func getNextStates(cur *state, valves map[string]valve) []*state {
+func getNextStates(cur state, valves map[string]valve) []state {
 	// 1. where are you?
 	valve := valves[cur.position]
 
 	// capacity represents movements to any `leadsTo`, or opening
-	nextStates := make([]*state, 0, len(valve.leadsTo)+1)
+	nextStates := make([]state, 0, len(valve.leadsTo)+1)
 
 	// 2. is the valve open and flow>0?
 	if !cur.valvesOpen.Has(valve.name) && valve.flow > 0 {
@@ -130,9 +160,9 @@ func getNextStates(cur *state, valves map[string]valve) []*state {
 	return nextStates
 }
 
-func (cur state) copy() *state {
+func (cur state) copy() state {
 	// would love to know if there's a better way to copy data
-	copy := &state{
+	copy := state{
 		position:   cur.position,
 		time:       cur.time,
 		valvesOpen: types.Set[string]{},
@@ -154,12 +184,17 @@ func (cur *state) addPressure(valves map[string]valve) {
 }
 
 // we probably need caching
-func (cur *state) hash() string {
+func (cur state) hash() string {
 	// we can probably cache based on:
 	// position and valvesOpen (and time?)
-	// tempted to do a bitmask
+	return fmt.Sprint(cur.position, "-", cur.hashValvesOpen(), "-", cur.time)
+}
+
+// useful for part 1 and part 2
+func (cur state) hashValvesOpen() string {
 	open := make([]string, 0, len(cur.valvesOpen))
 
+	// tempted to do a bitmask
 	for key := range cur.valvesOpen {
 		open = append(open, key)
 	}
@@ -168,9 +203,8 @@ func (cur *state) hash() string {
 		return open[i] < open[j]
 	})
 
-	return fmt.Sprint(cur.position, "-", open, "-", cur.time)
-}
+	asString := fmt.Sprint(open)
 
-func (state *state) String() (out string) {
-	return fmt.Sprint(*state)
+	// lazily omit the "[]" from the Sprint
+	return asString[1 : len(asString)-1]
 }

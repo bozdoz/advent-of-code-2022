@@ -4,8 +4,74 @@
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
 
-**Time: ~2 hrs**
+**Time: ~3 hrs**
 
+So this reminded me of last year's [Day 23](https://github.com/bozdoz/advent-of-code-2021/blob/354349e4943eba626edd877507c85f5df25d235b/23/shuffle.go).  What I did was create a priority queue, with caching, and storing each state, while discovering each possible next state.
+
+It didn't seem very performant, but I'm happy enough with the results:
+
+```sh
+1 | 1915 (38.370372572s)
+2 | 2772 (10.330658624s)
+```
+
+I really tried to avoid using pointers, and I think it didn't matter much, except for updating pressure:
+
+```go
+func (cur *state) addPressure(valves map[string]valve) {
+	for open := range cur.valvesOpen {
+		cur.pressure += valves[open].flow
+	}
+}
+```
+
+For Part 2, I ran the same function once, returning unique paths according to which valves were open.  I cached the paths according to those valves, and repeatedly updated the best pressure value:
+
+```go
+// logic here is that if there are 2 of us, we should each open ~50%
+percentOpen := float64(len(state.valvesOpen)) / viableValveCount
+
+// test passes with 40% and 60%, but
+// actual puzzle does not pass after 8 seconds:
+// 		bestDuoPath Count: 146
+// trying 30% and 70% with actual puzzle worked:
+// 		bestDuoPath Count: 2422
+if percentOpen > 0.3 && percentOpen < 0.7 {
+	// we can cache here again on valvesOpen, and update max(pressure)
+	key := state.hashValvesOpen()
+	pathPressure, ok := bestDuoPaths[key]
+
+	if !ok || state.pressure > pathPressure {
+		bestDuoPaths[key] = state.pressure
+	}
+}
+```
+
+And I contemplated implementing a bitmask for `valvesOpen`, which is a unique Set:
+
+```go
+func (cur state) hashValvesOpen() string {
+	open := make([]string, 0, len(cur.valvesOpen))
+
+	// tempted to do a bitmask
+	for key := range cur.valvesOpen {
+		open = append(open, key)
+	}
+
+	sort.Slice(open, func(i, j int) bool {
+		return open[i] < open[j]
+	})
+
+	asString := fmt.Sprint(open)
+
+	// lazily omit the "[]" from the Sprint
+	return asString[1 : len(asString)-1]
+}
+```
+
+A bitmask would help so I could have a set, but not need to order it to create the hash (since maps wouldn't be ordered identically).
+
+Also, today I added the `-part` flag to the `utils.runSolvers` function, so that I wouldn't have to wait for part 1 to finish before I could start part 2.
 
 ### Day 15
 
