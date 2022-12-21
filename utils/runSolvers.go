@@ -39,9 +39,10 @@ func RunSolvers[T any, O any](day Day[T, O]) {
 	}
 
 	for _, fun = range fncs {
+		i++
 		s := time.Now()
 		val := fun(data)
 
-		fmt.Printf("%v | %v (%v)\n", i+1, val, time.Since(s))
+		fmt.Printf("%v | %v (%v)\n", i, val, time.Since(s))
 	}
 }
