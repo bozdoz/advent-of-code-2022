@@ -51,7 +51,8 @@ func ReadFile(file string) (content string) {
 		panic(fmt.Sprint("could not read file", file, err))
 	}
 
-	return string(fileBytes)
+	// only trim the end of the document
+	return strings.TrimRightFunc(string(fileBytes), unicode.IsSpace)
 }
 
 // read lines into []int
@@ -63,10 +64,5 @@ func ReadInts(file string) (content []int) {
 
 // splits and trims file to return empty-new-line-separated groups
 func ReadEmptyLineGroups(file string) (content []string) {
-	data := ReadFile(file)
-
-	// only trim the end of the document
-	data = strings.TrimRightFunc(data, unicode.IsSpace)
-
-	return strings.Split(data, "\n\n")
+	return strings.Split(ReadFile(file), "\n\n")
 }
