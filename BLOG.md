@@ -1,5 +1,24 @@
 # What Am I Learning Each Day?
 
+### Day 17
+
+**Difficulty: 5/10** ★★★★★☆☆☆☆☆
+
+**Time: ~3 hrs**
+
+I like to plan out my strategy in comments before writing the code, then adding code one step at a time
+
+```go
+// shape begins falling 2 from left, and 3 from bottom
+// 1. add shape to space
+// 2. air pushes left or right
+// 3. shape falls 1 unit
+// 4. check for collision
+// 5. repeat at step 2, or add next shape at step 1
+```
+
+Part 1 in 1.187ms
+
 ### Day 16
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
