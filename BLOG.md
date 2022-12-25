@@ -4,7 +4,7 @@
 
 **Difficulty: 5/10** ★★★★★☆☆☆☆☆
 
-**Time: ~3 hrs**
+**Time: ~6 hrs**
 
 I like to plan out my strategy in comments before writing the code, then adding code one step at a time
 
