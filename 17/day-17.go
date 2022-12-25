@@ -16,7 +16,7 @@ func partOne(data inType) (ans outType) {
 }
 
 func partTwo(data inType) (ans outType) {
-	return
+	return play(data, 1000000000000)
 }
 
 //

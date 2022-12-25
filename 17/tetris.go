@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/bozdoz/advent-of-code-2022/utils"
 )
 
 // airR = ">"[0] // but who cares?
@@ -25,104 +27,93 @@ func binaryStringToInt(bin string) int {
 	return int(val)
 }
 
-var shapes = [...]shape{
+var shapes = []shape{
 	{[]int{
-		binaryStringToInt("1111"),
+		binaryStringToInt("1111") << 3,
 	},
 		4,
 	},
 	{[]int{
-		binaryStringToInt("010"),
-		binaryStringToInt("111"),
-		binaryStringToInt("010"),
+		binaryStringToInt("010") << 4,
+		binaryStringToInt("111") << 4,
+		binaryStringToInt("010") << 4,
 	},
 		3,
 	},
 	// these shapes are actually upside-down :S
 	{[]int{
-		binaryStringToInt("111"),
-		binaryStringToInt("001"),
-		binaryStringToInt("001"),
+		binaryStringToInt("111") << 4,
+		binaryStringToInt("001") << 4,
+		binaryStringToInt("001") << 4,
 	},
 		3,
 	},
 	{[]int{
-		1,
-		1,
-		1,
-		1,
+		1 << 6,
+		1 << 6,
+		1 << 6,
+		1 << 6,
 	},
 		1,
 	},
 	{[]int{
-		binaryStringToInt("11"),
-		binaryStringToInt("11"),
+		binaryStringToInt("11") << 5,
+		binaryStringToInt("11") << 5,
 	},
 		2,
 	},
 }
 
-func play(jetPattern string, iterations int) (height int) {
-	// 9 columns (starts with the floor and two walls)
-	// tempted to do a bitmask again
-	space := []int{
-		(1 << 9) - 1, // all mask of 9
+func generator[T any](arr []T) func() T {
+	i := -1
+	l := len(arr)
+	return func() T {
+		i++
+		return arr[i%l]
 	}
+}
 
-	// closure generator for jet pattern
-	getJet := func() func() byte {
-		i := -1
-		l := len(jetPattern)
+func play(jetPattern string, iterations int) (height int) {
+	// the play area (7 columns)
+	// thought about starting with a floor: (1 << 7) - 1, // all mask of 7
+	space := []int{}
 
-		return func() byte {
-			i++
-			return jetPattern[i%l]
-		}
-	}()
+	getJet := generator([]byte(jetPattern))
+	getShape := generator(shapes)
 
 	for i := 0; i < iterations; i++ {
 		// loop shapes
-		s := shapes[i%len(shapes)]
-
-		// create a copy
-		copy := shape{
-			outline: append([]int{}, s.outline...),
-			width:   s.width,
-		}
-
-		// shape begins falling 2 from left, and 3 from bottom
-		padSpace(&space)
+		shape := getShape()
 
 		// iterate air blowing and gravity pulling
-		applyForces(&space, copy, getJet)
+		applyForces(&space, shape, getJet)
 	}
 
-	return getTowerHeight(space)
+	// return saved height + remaining tower height
+	return height + len(space)
 }
-
-var emptyRow = binaryStringToInt("100000001")
 
 func applyForces(space *[]int, shape shape, getJet func() byte) {
 	// 1. add shape to space
+	top := len(*space)
 	// add the shape to the top, 2 from left
-	// width - shape.width - leftPadding + leftwall
-	shift := 7 - shape.width - 2 + 1
-	for i, v := range shape.outline {
-		// TODO: should this be in the definition of the shape?
-		shape.outline[i] = v << shift
-		// add extra padding for space
-		*space = append(*space, emptyRow)
-	}
-
-	// place the shape's bottom at a specific row
-	bottom := len(*space) - len(shape.outline)
-
-	// PrintSpaceWithShape(*space, shape, bottom)
+	x := 2
+	// 3 from the top
+	y := top + 3
 
 	isCollision := func() bool {
 		for i := 0; i < len(shape.outline); i++ {
-			j := bottom + i
-			if (*space)[j]&shape.outline[i] != 0 {
+			j := y + i
+			if j > top-1 {
+				// nothing at this row yet
+				return false
+			}
+			if j < 0 {
+				// didn't make a bottom, so this is gone past
+				return true
+			}
+			if (*space)[j]&(shape.outline[i]>>x) != 0 {
+				// testing any other collision
 				return true
 			}
 		}
@@ -133,71 +124,39 @@ func applyForces(space *[]int, shape shape, getJet func() byte) {
 		// 2. air pushes left or right
 		air := getJet()
 
-		// TODO: could copy here instead
-		for i, b := range shape.outline {
-			if air == airL {
-				shape.outline[i] = b << 1
-			} else {
-				shape.outline[i] = b >> 1
-			}
+		if air == airL {
+			x = utils.Max(0, x-1)
+		} else {
+			x = utils.Min(7-shape.width, x+1)
 		}
 
-		// check collision
 		if isCollision() {
 			// reverse moving shape
-			for i, b := range shape.outline {
-				if air == airL {
-					shape.outline[i] = b >> 1
-				} else {
-					shape.outline[i] = b << 1
-				}
+			if air == airL {
+				x++
+			} else {
+				x--
 			}
 		}
 
 		// 3. shape falls 1 unit
-		bottom--
+		y--
 
 		// check collision again
 		if isCollision() {
 			// rests at bottom+1
-			bottom++
+			y++
 			// add shape to space
 			for i := 0; i < len(shape.outline); i++ {
-				j := bottom + i
-				(*space)[j] ^= shape.outline[i]
+				j := y + i
+				alignedPart := shape.outline[i] >> x
+				if j > len(*space)-1 {
+					*space = append(*space, alignedPart)
+				} else {
+					(*space)[j] ^= alignedPart
+				}
 			}
 			break
-		}
-	}
-}
-
-func getTowerHeight(space []int) int {
-	rows := len(space)
-	// find last row with a rock unit
-	for r := rows - 1; r >= 0; r-- {
-		row := space[r]
-		if row != emptyRow {
-			return r
-		}
-	}
-
-	// can't get here, right?
-	return -1
-}
-
-// prepare space for new shape by padding top at least 3 rows
-func padSpace(space *[]int) {
-	towerHeight := getTowerHeight(*space)
-
-	// add shape 3 from bottom, including height of floor (1)
-	newLen := towerHeight + 3 + 1
-	// last shape may have left more padding than needed
-	if len(*space) > newLen {
-		*space = (*space)[:newLen]
-	} else {
-		// add empty rows
-		for len(*space) < newLen {
-			*space = append(*space, emptyRow)
 		}
 	}
 }
@@ -207,20 +166,58 @@ func PrintSpace(space []int) {
 	fmt.Println()
 	for i := len(space) - 1; i >= 0; i-- {
 		row := space[i]
-		str := fmt.Sprintf("|%09b|", row)
-		str = strings.ReplaceAll(str, "0", " ")
+		str := fmt.Sprintf("|%07b|", row)
+		str = strings.ReplaceAll(str, "0", ".")
 		fmt.Println(str)
 	}
+	fmt.Println("+-------+")
 }
 
-func PrintSpaceWithShape(space []int, shape shape, bottom int) {
+func PrintSpaceWithShape(space []int, shape shape, x, y int) {
 	// don't mutate space
 	copy := append([]int{}, space...)
+
+	for len(copy) < y+len(shape.outline) {
+		copy = append(copy, 0)
+	}
+
 	// add shape to space
 	for i := 0; i < len(shape.outline); i++ {
-		j := bottom + i
-		copy[j] ^= shape.outline[i]
+		j := y + i
+		copy[j] ^= (shape.outline[i] >> x)
 	}
 
 	PrintSpace(copy)
+}
+
+// simple hash function from:
+// https://golangprojectstructure.com/hash-functions-go-code/
+func djb2(data []int) uint64 {
+	hash := uint64(5381)
+
+	for _, b := range data {
+		hash += uint64(b) + hash + hash<<5
+	}
+
+	return hash
+}
+
+// try rolling hash?
+// we believe `a` ENDS with a pattern
+func findRepeatingPatternFromEnd(source []int) (length int) {
+	end := len(source) - 1
+	lowerLimit := 5
+	upperLimit := len(source)/2 - 1
+
+	for w := lowerLimit; w < upperLimit; w++ {
+		a := source[end-w:]
+		b := source[end-(w*2)-1 : end-w]
+
+		if djb2(a) == djb2(b) {
+			// hashes match; we have a pattern
+			return len(a)
+		}
+	}
+
+	return -1
 }
