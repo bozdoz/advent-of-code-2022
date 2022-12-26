@@ -2,9 +2,9 @@
 
 ### Day 17
 
-**Difficulty: 5/10** ★★★★★☆☆☆☆☆
+**Difficulty: 8/10** ★★★★★★★★☆☆
 
-**Time: ~6 hrs**
+**Time: ~7 hrs**
 
 I like to plan out my strategy in comments before writing the code, then adding code one step at a time
 
@@ -17,7 +17,96 @@ I like to plan out my strategy in comments before writing the code, then adding 
 // 5. repeat at step 2, or add next shape at step 1
 ```
 
-Part 1 in 1.187ms
+Part 1 originally in 1.187ms.  After refactor, Part 1 took 680ms, and Part 2 took 3.3 seconds.
+
+I really wanted to try a bitmask today, because I have never really used one. I think it was a fine idea, though hard to keep track of.  Added some printing functions to help, and a `binaryStringToInt` function.  I also had to push the shapes to the left-hand-side, according to the width of each, and the width of the space (7):
+
+```go
+shape{
+	[]int{
+		binaryStringToInt("1111") << 3,
+	},
+	4,
+}
+```
+
+The collision function is where the bitmask helped:
+
+```go
+// test if space row & shape row == 0
+if (*space)[j]&(shape.outline[i]>>x) != 0 {
+	return true
+}
+```
+
+And adding the shape to the space like so:
+
+```go
+// add shape to space
+for i := 0; i < len(shape.outline); i++ {
+	j := y + i
+	// shifting by x
+	alignedPart := shape.outline[i] >> x
+	if j > len(*space)-1 {
+		*space = append(*space, alignedPart)
+	} else {
+		// adding shape
+		(*space)[j] ^= alignedPart
+	}
+}
+```
+
+I ran into a lot of issues with Part 2, related to how I was padding the space before adding the shape, and how I was checking for a drop pattern (checked the space originally, since I could visibly see it in printouts).  Checking the x sequence was easier, and creating generator functions for shape and air pushing made them more isolated from depending on `i` iterations:
+
+```go
+func generator[T any](arr []T) func() T {
+	i := -1
+	l := len(arr)
+	return func() T {
+		i++
+		return arr[i%l]
+	}
+}
+```
+
+And I learned a bit about rolling hashes to detect patterns:
+
+```go
+
+// simple hash function from:
+// https://golangprojectstructure.com/hash-functions-go-code/
+func djb2(data []int) uint64 {
+	hash := uint64(5381)
+
+	for _, b := range data {
+		hash += uint64(b) + hash + hash<<5
+	}
+
+	return hash
+}
+
+// try rolling hash?
+// we believe `source` ENDS with a pattern
+func findRepeatingPatternFromEnd(source []int) (length int) {
+	end := len(source) - 1
+	lowerLimit := 5
+	upperLimit := len(source)/2 - 1
+
+	for w := lowerLimit; w < upperLimit; w++ {
+		a := source[end-w:]
+		b := source[end-(w*2)-1 : end-w]
+
+		if djb2(a) == djb2(b) {
+			// hashes match; we have a pattern
+			return w + 1
+		}
+	}
+
+	return
+}
+```
+
+Overall, I learned to hate today, even though I started really enjoying it.  I feel like I was so close yet so far.
 
 ### Day 16
 
