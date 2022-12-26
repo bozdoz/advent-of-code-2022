@@ -108,6 +108,8 @@ func findRepeatingPatternFromEnd(source []int) (length int) {
 
 Overall, I learned to hate today, even though I started really enjoying it.  I feel like I was so close yet so far.
 
+I should say I initially tried to put walls and the floor into the space variable, but second guessed it during refactoring.  Seeing as Part 1 is now 600x slower, I might revisit this if and when I care.
+
 ### Day 16
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
