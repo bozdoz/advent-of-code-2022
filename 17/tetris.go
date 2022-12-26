@@ -80,20 +80,51 @@ func play(jetPattern string, iterations int) (height int) {
 
 	getJet := generator([]byte(jetPattern))
 	getShape := generator(shapes)
+	heights := []int{}
+
+	// need to find cycle length, and height per cycle
+	// use sequence of x positions, because it's better than checking
+	// the pattern in `space` (there is a pattern but it doesn't appear
+	// at the start or the end: only in the middle)
+	sequence := []int{}
+	var cycleLength, heightPerCycle int
 
 	for i := 0; i < iterations; i++ {
 		// loop shapes
 		shape := getShape()
 
 		// iterate air blowing and gravity pulling
-		applyForces(&space, shape, getJet)
+		x := applyForces(&space, shape, getJet)
+
+		if cycleLength == 0 {
+			heights = append(heights, len(space))
+			// find cycle pattern
+			sequence = append(sequence, x)
+
+			patternLength := findRepeatingPatternFromEnd(sequence)
+
+			if patternLength > 0 {
+				cycleLength = patternLength
+				// current height - height at beginning of cycle
+				heightPerCycle = len(space) - heights[len(heights)-cycleLength-1]
+				// remaining iterations
+				remaining := iterations - i
+				// number of cycles remaining
+				cycles := remaining / cycleLength
+				// height of remaining cycles
+				height += cycles * heightPerCycle
+				// increment past patterns
+				todo := remaining % cycleLength
+				// skip to remaining iterations
+				i = iterations - todo
+			}
+		}
 	}
 
-	// return saved height + remaining tower height
 	return height + len(space)
 }
 
-func applyForces(space *[]int, shape shape, getJet func() byte) {
+func applyForces(space *[]int, shape shape, getJet func() byte) int {
 	// 1. add shape to space
 	top := len(*space)
 	// add the shape to the top, 2 from left
@@ -159,6 +190,9 @@ func applyForces(space *[]int, shape shape, getJet func() byte) {
 			break
 		}
 	}
+
+	// we'll keep track of the sequence of x's to determine a cycle pattern
+	return x
 }
 
 // debugging my insane bitmask concept
@@ -203,7 +237,7 @@ func djb2(data []int) uint64 {
 }
 
 // try rolling hash?
-// we believe `a` ENDS with a pattern
+// we believe `source` ENDS with a pattern
 func findRepeatingPatternFromEnd(source []int) (length int) {
 	end := len(source) - 1
 	lowerLimit := 5
@@ -215,9 +249,9 @@ func findRepeatingPatternFromEnd(source []int) (length int) {
 
 		if djb2(a) == djb2(b) {
 			// hashes match; we have a pattern
-			return len(a)
+			return w + 1
 		}
 	}
 
-	return -1
+	return
 }
