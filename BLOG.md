@@ -1,5 +1,44 @@
 # What Am I Learning Each Day?
 
+### Day 20
+
+**Difficulty: ?/10** ☆☆☆☆☆☆☆☆☆☆
+
+**Time: ~20 mins**
+
+Ordering the list for Part 1 was at first hard to grasp, but I seemed to luck out.  I iterated the list, kept track if it was `visited` or not, and then either incremented `i` by 1 or 0 (to check the likely next unvisited value).
+
+```go
+for i := 0; i < len(ordered); {
+	s := ordered[i]
+
+	if s.visited {
+		i++
+		continue
+	}
+	newI := (i + s.value) % (len(ordered) - 1)
+	if newI < 0 {
+		newI %= len(ordered)
+		newI = len(ordered) + newI - 1
+	}
+	if newI == 0 {
+		newI = len(ordered) - 1
+	}
+
+	// remove
+	ordered = append(ordered[:i], ordered[i+1:]...)
+	// insert
+	ordered = append(ordered[:newI], append([]sorting{{
+		value:   s.value,
+		visited: true,
+	}}, ordered[newI:]...)...)
+
+	// don't adjust i; we revisit this index
+}
+```
+
+Inserting array values, and removing array values is still a little annoying.  We'll see how painful Part 2 is later.
+
 ### Day 17
 
 **Difficulty: 8/10** ★★★★★★★★☆☆
