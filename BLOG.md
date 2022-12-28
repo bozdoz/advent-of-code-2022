@@ -1,5 +1,13 @@
 # What Am I Learning Each Day?
 
+### Day 21
+
+**Difficulty: ?/10** ☆☆☆☆☆☆☆☆☆☆
+
+**Time: ~30 mins**
+
+Part 1 was quite simple
+
 ### Day 20
 
 **Difficulty: ?/10** ☆☆☆☆☆☆☆☆☆☆
