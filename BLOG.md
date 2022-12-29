@@ -2,11 +2,87 @@
 
 ### Day 21
 
-**Difficulty: ?/10** ☆☆☆☆☆☆☆☆☆☆
+**Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
 
-**Time: ~30 mins**
+**Time: ~60 mins**
 
-Part 1 was quite simple
+Part 1 was quite simple.  Pretty simple to parse by just using `strings.Fields(line)` and checking the length of the fields.  The structure was a bit awkward, because the monkeys either had a value or had to derive a value:
+
+```go
+type monkey struct {
+	value              int
+	hasValue           bool
+	needs              [2]string
+	operator, neededBy string
+}
+
+type monkeys map[string]monkey
+
+// ...
+
+fields := strings.Fields(line)
+name := fields[0][:len(fields[0])-1]
+
+monkey := monkey{}
+
+if len(fields) == 2 {
+	// monkey has number
+	monkey.hasValue = true
+	monkey.value = utils.ParseInt(fields[1])
+} else {
+	// monkey depends on other monkeys
+	a, op, b := fields[1], fields[2], fields[3]
+	monkey.needs = [2]string{a, b}
+	monkey.operator = op
+}
+
+monkeys[name] = monkey
+```
+
+I thought the `hasValue` field was quite annoying; mostly because empty int's are `0`, which would also be valid.  I've stuck with the idea of identifying objects via their string key's instead of defining `needs` as `[2]*monkey`.  This made for some awkward code later, as I was constantly referencing `monkeys[name]`, but it made for much easier parsing.
+
+Today was very lazy: it was kind of like I was talking before thinking, and trying to figure out what I said.  
+
+Part 1's `getMonkey` is a recursive function, which I find very clean.  I used it to update the monkeys for part 2, so that I didn't have to derive values again.
+
+The `whatToYell` function is very sloppy and filled with comments, mostly to try to figure out my flailing ideas.  I knew I could figure out the value by creating a stack from "humn", and then iterating back down the stack, from "root", to figure out what each value is supposed to be and then doing simple math on it.  There were a lot of variables which were hard to name, and hard to keep track of.  
+
+```go
+// number we need the next monkey to yell
+var nextNeed int
+
+switch cur.operator {
+case "=":
+	// we need to equal the other
+	nextNeed = other
+case "/":
+	// mult or divide depending on whether we're looking for
+	// numerator or denominator
+	if index == 1 {
+		// x / other = prevNeed
+		nextNeed = other * prevNeed
+	} else {
+		// other / x = prevNeed
+		nextNeed = other / prevNeed
+	}
+case "+":
+	nextNeed = prevNeed - other
+case "*":
+	nextNeed = prevNeed / other
+case "-":
+	if index == 1 {
+		// x - other = prevNeed
+		nextNeed = prevNeed + other
+	} else {
+		// other - x = prevNeed
+		nextNeed = other - prevNeed
+	}
+}
+```
+
+This seemed very easy.
+
+Times: `~2ms` each part
 
 ### Day 20
 

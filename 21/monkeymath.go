@@ -1,18 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
+	"github.com/bozdoz/advent-of-code-2022/types"
 	"github.com/bozdoz/advent-of-code-2022/utils"
 )
 
 type monkey struct {
-	value    int
-	hasValue bool
-	needs    [2]string
-	operator string
-	neededBy []string // doubly linked list?
+	value              int
+	hasValue           bool
+	needs              [2]string
+	operator, neededBy string
 }
 
 type monkeys map[string]monkey
@@ -44,13 +43,13 @@ func parseInput(data inType) monkeys {
 	for name, monkey := range monkeys {
 		if !monkey.hasValue {
 			for _, needed := range monkey.needs {
+				// cannot assign to struct field ... in map
 				mo := monkeys[needed]
-				mo.neededBy = append(mo.neededBy, name)
+				mo.neededBy = name
+				monkeys[needed] = mo
 			}
 		}
 	}
-
-	fmt.Println(monkeys)
 
 	return monkeys
 }
@@ -81,5 +80,83 @@ func (m *monkeys) getMonkey(a string) int {
 	monkey.hasValue = true
 	monkey.value = value
 
+	// actually update the map for part 2
+	(*m)[a] = monkey
+
 	return value
+}
+
+func (m *monkeys) whatToYell(a string) int {
+	// move from humn to root, then back, to figure out what each monkey needs to yell
+	stack := types.Stack[string]{}
+
+	for a != "root" {
+		// can't push &a, because a never changes address;
+		// need to create a new local variable
+		b := a
+		stack.Push(&b)
+		monkey := (*m)[a]
+		a = monkey.neededBy
+	}
+
+	// figure out what number we need
+	cur := (*m)["root"]
+	// root operator is "=" for part 2
+	cur.operator = "="
+
+	// keep track of what number we need to yell for the previous monkey's equation
+	var prevNeed int
+
+	for len(stack) > 0 {
+		// get next monkey, figure out what it needs to yell
+		nextName := *stack.Pop()
+
+		// index of monkey whose value determines what we need to yell
+		var index int
+
+		if cur.needs[0] == nextName {
+			index = 1
+		} else {
+			index = 0
+		}
+
+		other := (*m)[cur.needs[index]].value
+
+		// number we need the next monkey to yell
+		var nextNeed int
+
+		switch cur.operator {
+		case "=":
+			// we need to equal the other
+			nextNeed = other
+		case "/":
+			// mult or divide depending on whether we're looking for
+			// numerator or denominator
+			if index == 1 {
+				// x / other = prevNeed
+				nextNeed = other * prevNeed
+			} else {
+				// other / x = prevNeed
+				nextNeed = other / prevNeed
+			}
+		case "+":
+			nextNeed = prevNeed - other
+		case "*":
+			nextNeed = prevNeed / other
+		case "-":
+			if index == 1 {
+				// x - other = prevNeed
+				nextNeed = prevNeed + other
+			} else {
+				// other - x = prevNeed
+				nextNeed = other - prevNeed
+			}
+		}
+
+		cur = (*m)[nextName]
+
+		prevNeed = nextNeed
+	}
+
+	return prevNeed
 }

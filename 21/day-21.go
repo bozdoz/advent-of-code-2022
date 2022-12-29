@@ -20,6 +20,13 @@ func partOne(data inType) (ans outType) {
 }
 
 func partTwo(data inType) (ans outType) {
+	monkeys := parseInput(data)
+
+	// populate all monkey values
+	monkeys.getMonkey("root")
+
+	ans = monkeys.whatToYell("humn")
+
 	return
 }
 
