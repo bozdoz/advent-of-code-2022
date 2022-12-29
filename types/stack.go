@@ -29,9 +29,9 @@ func (stack *Stack[T]) Peek() (item *T) {
 func (stack Stack[T]) String() (out string) {
 	out += "[ "
 	for _, val := range stack {
-		out += fmt.Sprint(val)
+		out += fmt.Sprint(*val, " ")
 	}
-	out += " ]"
+	out += "]"
 
 	return
 }
