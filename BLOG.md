@@ -306,6 +306,31 @@ A bitmask would help so I could have a set, but not need to order it to create t
 
 Also, today I added the `-part` flag to the `utils.runSolvers` function, so that I wouldn't have to wait for part 1 to finish before I could start part 2.
 
+#### Update Day 16
+
+So, I apparently did not set up the priority queue correctly:
+
+```diff
+// sets index automatically
+func (pq *PriorityQueue[T]) PushValue(value *T, priority int) {
+	newItem := &Item[T]{
+		value,
+		priority,
+		0,
+	}
+
+-	pq.Push(pq, newItem)
++	heap.Push(pq, newItem)
+}
+```
+
+After fixing this, the speed improved by 10s for Part 1:
+
+```sh
+1 | 1915 (29.5305s)
+2 | 2772 (8.6158s)
+```
+
 ### Day 15
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
