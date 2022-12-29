@@ -34,7 +34,7 @@ func (pq *PriorityQueue[T]) PushValue(value *T, priority int) {
 		0,
 	}
 
-	pq.Push(newItem)
+	heap.Push(pq, newItem)
 }
 
 func (pq PriorityQueue[T]) Len() int { return len(pq) }
