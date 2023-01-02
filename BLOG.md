@@ -1,5 +1,117 @@
 # What Am I Learning Each Day?
 
+### Day 22
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~3 hrs**
+
+I found this one to be a hard one to wrap my head around.  Part 1 is 230 LOC. I did manage to get most of the logic inside one function:
+
+```go
+// rope around if there is empty space
+func (b *board) getNext(r, c int, dir face) (next [2]int, hitWall bool) {
+	cur := [2]int{r, c}
+
+	for {
+		next = cur
+		moveOne(&next, dir)
+
+		// negative numbers
+		if dir > 1 {
+			if next[0] < 0 {
+				next[0] = b.height + next[0]
+			} else if next[1] < 0 {
+				next[1] = b.width + next[1]
+			}
+		}
+
+		// wrap around
+		next[0] %= b.height
+		next[1] %= b.width
+
+		cell := b.get(next[0], next[1])
+
+		if cell == open {
+			return
+		}
+		if cell == wall {
+			// return original
+			return [2]int{r, c}, true
+		}
+
+		cur = next
+	}
+}
+```
+
+Which is actually helped a lot by the `moveOne` function:
+
+```go
+func moveOne(pos *[2]int, dir face) {
+	switch dir {
+	case right:
+		pos[1]++
+	case left:
+		pos[1]--
+	case up:
+		pos[0]--
+	case down:
+		pos[0]++
+	}
+}
+```
+
+I opted for a pointer here to avoid dealing with carrying over return values and re-assigning.  I'm unsure about the board.get method:
+
+```go
+func (b *board) get(r, c int) (val tile) {
+	return b.grid[r][c]
+}
+```
+
+But I thought it might prove useful later one (so far, no). 
+
+I really liked my data structure for today:
+
+```go
+
+type tile rune
+
+const (
+	empty tile = ' '
+	open  tile = '.'
+	wall  tile = '#'
+)
+
+type face int
+
+const (
+	right face = iota
+	down
+	left
+	up
+)
+
+type cmd int
+
+const (
+	move cmd = iota
+	rotate
+)
+
+type instruction struct {
+	command cmd
+	value   int // if rotate, then -1 for L and +1 for R
+}
+```
+
+I turned the instructions into -1 or +1 to rotate, and the `type face` was just iota's.
+
+Anyway, I suspect Part 2 will be hell.
+
+**Part 1 ran in 5ms**
+
 ### Day 21
 
 **Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
