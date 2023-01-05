@@ -1,5 +1,165 @@
 # What Am I Learning Each Day?
 
+### Day 23
+
+**Difficulty: 6/10** ★★★★★★★☆☆☆
+
+**Time: ~3 hrs**
+
+I'm really unsure how long I took on this one.  I went back and forth with it for awhile.  Today seemed very easy to parse, and a rather simple data structure too:
+
+```go
+type grid map[int]map[int]struct{}
+
+func parseInput(data inType) grid {
+	grid := grid{}
+
+	for r, line := range data {
+		for c, char := range line {
+			if char == '#' {
+				grid.set(r, c)
+			}
+		}
+	}
+
+	return grid
+}
+```
+
+I then added added some CRUD operations for the `grid` type:
+
+```go
+func (g *grid) set(r, c int) {
+	if (*g)[r] == nil {
+		(*g)[r] = map[int]struct{}{}
+	}
+	(*g)[r][c] = struct{}{}
+}
+
+func (g *grid) get(r, c int) bool {
+	if (*g)[r] == nil {
+		(*g)[r] = map[int]struct{}{}
+	}
+	_, ok := (*g)[r][c]
+
+	return ok
+}
+
+func (g *grid) delete(r, c int) {
+	delete((*g)[r], c)
+}
+```
+
+I leaned on `image.Point` again for dealing with where the elves plan to move to:
+
+```go
+// map moveTo -> moveFrom
+planned := map[image.Point]image.Point{}
+contested := map[image.Point]struct{}{}
+```
+
+I thought iterating over these maps might take too much memory, but I was surprised by the results:
+
+```sh
+1 | 4181 (16.571719ms)
+2 | 973 (1.493149216s)
+```
+
+Part 2 actually took me maybe less than a minute to complete; part 1 and part 2 together:
+
+```go
+// stop at 10 if part 1
+if part == 1 && rounds == checkAt {
+	// get square from bounds
+	bounds := g.bounds()
+
+	height := bounds[2] - bounds[0] + 1
+	width := bounds[1] - bounds[3] + 1
+	size := height * width
+	empty := size - elves
+
+	return empty
+}
+
+// all the elves stopped moving
+if elves == still {
+	return rounds
+}
+```
+
+Super simple.  The only problem I seemed to have was dealing with the alternating order of directional checks around the elves:
+
+```go
+for r, row := range *g {
+	for c := range row {
+		elves++
+
+		neighbours := make([]bool, 12)
+
+		// top
+		neighbours[0] = g.get(r-1, c-1)
+		neighbours[1] = g.get(r-1, c)
+		neighbours[2] = g.get(r-1, c+1)
+		// bottom
+		neighbours[3] = g.get(r+1, c-1)
+		neighbours[4] = g.get(r+1, c)
+		neighbours[5] = g.get(r+1, c+1)
+		// left
+		neighbours[6] = neighbours[3]
+		neighbours[7] = g.get(r, c-1)
+		neighbours[8] = neighbours[0]
+		// right
+		neighbours[9] = neighbours[5]
+		neighbours[10] = g.get(r, c+1)
+		neighbours[11] = neighbours[2]
+
+		if utils.All(neighbours, func(x bool, _ int) bool {
+			// check if all are empty
+			return !x
+		}) {
+			// elf doesn't do anything
+			still++
+			continue
+		}
+
+		// alternate between which direction we check first
+		j := neighbourIter % 4
+		for i := j; i < j+4; i++ {
+			k := i % 4
+			arr := neighbours[k*3 : k*3+3]
+
+			if utils.All(arr, func(x bool, i int) bool {
+				// check if empty
+				return !x
+			}) {
+				// elf can move here
+			  // ...
+```
+
+This seemed super wasteful to run all of this for every elf! I honestly expected the program to fail, and that I would have to rethink the problem.
+
+I repeatedly used the `All` function which I wrote for day 19 (still incomplete):
+
+```go
+// python's all() function, kinda
+func All[T any](arr []T, cb func(x T, i int) bool) bool {
+	for i, v := range arr {
+		if !cb(v, i) {
+			return false
+		}
+	}
+	return true
+}
+```
+
+I also, again, wrote a sanity check grid printer, and again used the same logic to update a string at an index:
+
+```go
+out[i] = out[i][0:j] + "#" + out[i][j+1:]
+```
+
+The grid was quite useful to view, though it was hard to distinguish which point was which, as they were all **"#"**, and the data structure was so minimal (being just `map[int]map[int]struct{}`)
+
 ### Day 22
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
