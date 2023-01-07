@@ -1,5 +1,67 @@
 # What Am I Learning Each Day?
 
+### Day 25
+
+**Difficulty: 3/10** ★★★☆☆☆☆☆☆☆
+
+**Time: ~1 hr*
+
+For Part 1 anyway (I assume there is no Part 2), today was pretty easy.  Just had to look up how to convert base 10 to base 5, which predictably had to do with quotients and remainders, and the conversion to the snafu-string-system was fulfilled with carrying over a single `1` if the value was `>2`.  Sometimes this caused the value to be `5`, which also had to wrap around back to `0`:
+
+```go
+// got this from https://meteorconverter.com/conversions/number-bases/10-to-5?input=600
+func decimalToSnafu(dec int) (snafu string) {
+	remainders := []int{}
+
+	for dec > 0 {
+		quotient := dec / 5
+		remaining := dec % 5
+		remainders = append(remainders, remaining)
+		dec = quotient
+	}
+
+	out := []string{}
+	carried := 0
+
+	for _, val := range remainders {
+		// 3 == 5-2 = "1="
+		// 4 == 5-1 = "1-"
+		withCarried := val + carried
+
+		if withCarried > 2 {
+			carried = 1
+		} else {
+			carried = 0
+		}
+
+		switch withCarried {
+		case 3:
+			out = append(out, "=")
+		case 4:
+			out = append(out, "-")
+		default:
+			// sometimes this could be 5, and should be 0
+			out = append(out, fmt.Sprint(withCarried%5))
+		}
+	}
+
+	if carried != 0 {
+		out = append(out, "1")
+	}
+
+	// reverse
+	for i := len(out) - 1; i >= 0; i-- {
+		snafu += out[i]
+	}
+
+	return
+}
+```
+
+This was a little awkward, since I'm appending to a `remainders` slice, then an `out` slice, then reversing that `out` slice to append to the `snafu string`.  And that's it!
+
+**Part 1 ran in 437.804µs**
+
 ### Day 24
 
 **Difficulty: 7/10** ★★★★★★★☆☆☆
@@ -127,7 +189,7 @@ Apparently my laziness has gotten the better of me, as the test for Part 1 no lo
 
 ### Day 23
 
-**Difficulty: 6/10** ★★★★★★★☆☆☆
+**Difficulty: 6/10** ★★★★★★☆☆☆☆
 
 **Time: ~3 hrs**
 
