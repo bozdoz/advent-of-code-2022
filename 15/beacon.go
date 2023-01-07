@@ -50,7 +50,7 @@ func parseInput(data inType) space {
 
 		// determine area where beacons cannot be
 		// AND determine min/max of space
-		d := manhattanDistance(coords, beacon)
+		d := utils.ManhattanDistance(coords, beacon)
 
 		sensors = append(sensors, &sensor{
 			coords:    coords,
@@ -109,15 +109,11 @@ func parseInput(data inType) space {
 	return space
 }
 
-func manhattanDistance(a, b image.Point) int {
-	return utils.Abs(a.X-b.X) + utils.Abs(a.Y-b.Y)
-}
-
 // we want to keep track of sensors that don't *actually* touch, but
 // share the same 1-pixel outer edge; but also,
 // track which sensors *actually* touch or overlap areas
 func sensorsTouchOrOverlap(a, b sensor) rel {
-	between := manhattanDistance(a.coords, b.coords)
+	between := utils.ManhattanDistance(a.coords, b.coords)
 
 	// -1 to omit the sensor space itself
 	dist := between - a.manhattan - b.manhattan - 1
@@ -151,7 +147,7 @@ func (space *space) couldBeBeacon(x, y int) bool {
 			return false
 		}
 
-		d := manhattanDistance(point, sensor.coords)
+		d := utils.ManhattanDistance(point, sensor.coords)
 
 		if d <= sensor.manhattan {
 			return false
@@ -241,7 +237,7 @@ func (space *space) contains(p image.Point) bool {
 func withinSensorRange(point image.Point, sensors types.Set[*sensor]) bool {
 	// run manhattan all over the sensors
 	for sensor := range sensors {
-		d := manhattanDistance(point, sensor.coords)
+		d := utils.ManhattanDistance(point, sensor.coords)
 
 		if d <= sensor.manhattan {
 			return true

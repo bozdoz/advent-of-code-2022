@@ -23,3 +23,7 @@ func GetSignPoint(point image.Point) image.Point {
 
 	return image.Point{x, y}
 }
+
+func ManhattanDistance(a, b image.Point) int {
+	return Abs(a.X-b.X) + Abs(a.Y-b.Y)
+}

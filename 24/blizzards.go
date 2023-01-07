@@ -41,6 +41,8 @@ func parseInput(data inType) valley {
 
 	// add wall above start to avoid moving out
 	valley.walls.Add(image.Point{-1, 1})
+	// add wall below end to avoid moving out
+	valley.walls.Add(image.Point{height, width - 2})
 
 	for r, row := range data {
 		for c, char := range row {
@@ -58,36 +60,33 @@ func parseInput(data inType) valley {
 }
 
 type state struct {
-	position       image.Point
-	minutes, steps int
-	distance       int // manhattan
+	position image.Point
+	minutes  int
 }
 
-func (vly valley) pathFinder() int {
-	// I think this may be A* or Djikstra. I just don't know 🫣
+func (vly valley) pathFinder(minutes int) int {
+	// I think this may be A* or Dijkstra. I just don't know 🫣
 	seen := types.Set[string]{}
 
 	pq := types.PriorityQueue[state]{}
 	pq.PushValue(&state{
 		position: vly.start,
-		distance: vly.distanceToEnd(vly.start),
+		minutes:  minutes,
 	}, 0)
 
 	for pq.Len() > 0 {
 		state := pq.Get()
 
-		// fmt.Println("state", state)
-
 		if state.position == vly.end {
 			// done
-			fmt.Println("duplicate states", len(seen))
-			fmt.Println("blizzard overlap cache hits", len(overlapCache))
+			// caches: 50727
+			// fmt.Println("duplicate states", len(seen))
+			// caches: 1148550
+			// fmt.Println("blizzard overlap cache hits", len(overlapCache))
 			return state.minutes
 		}
 
 		nextStates := vly.getNextStates(state)
-
-		// fmt.Println("next", nextStates)
 
 		// push states to pq
 		for i := range nextStates {
@@ -100,10 +99,11 @@ func (vly valley) pathFinder() int {
 			}
 			seen.Add(hash)
 
-			// prioritize states by distance and steps?
-			// ! Note: distance + steps takes 7seconds to get Part 1
+			distance := vly.distanceToEnd(next.position)
+
+			// prioritize states by distance and minutes?
 			// this PQ is in ASC order 🤷‍♀️
-			pq.PushValue(&next, next.distance+next.minutes)
+			pq.PushValue(&next, distance+next.minutes)
 		}
 	}
 
@@ -129,19 +129,10 @@ func (vly valley) getNextStates(cur *state) []state {
 		if !vly.walls.Has(move) {
 			// if not a blizzard
 			if !vly.stateOverlapsBlizzard(move, cur.minutes+1) {
-				steps := cur.steps + 1
-
-				if i == 4 {
-					// didn't move
-					steps = cur.steps
-				}
-
 				// add updated copy of state
 				states = append(states, state{
 					position: move,
-					steps:    steps,
 					minutes:  cur.minutes + 1,
-					distance: vly.distanceToEnd(move),
 				})
 			}
 		}
