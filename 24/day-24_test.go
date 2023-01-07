@@ -9,6 +9,9 @@ func TestBlizzardOverlap(t *testing.T) {
 	assert := func(t testing.TB, input []string, st state, want bool) {
 		t.Helper()
 
+		// reset cache
+		overlapCache = map[string]bool{}
+
 		vly := parseInput(input)
 
 		isBlizzard := vly.stateOverlapsBlizzard(st.position, st.minutes)
@@ -135,9 +138,8 @@ var answers = map[int]outType{
 var data = fileReader("example.txt")
 
 func TestExampleOne(t *testing.T) {
-	// TODO
-	t.Skip("Somehow this test is failing after Part 2")
-
+	// reset cache
+	overlapCache = map[string]bool{}
 	expected := answers[1]
 
 	val := partOne(data)
@@ -148,6 +150,9 @@ func TestExampleOne(t *testing.T) {
 }
 
 func TestExampleTwo(t *testing.T) {
+	// reset cache
+	overlapCache = map[string]bool{}
+
 	expected := answers[2]
 
 	val := partTwo(data)
