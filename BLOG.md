@@ -8,6 +8,121 @@
 
 **Part 1 runs in 7.5seconds**.  Not sure what to give for priority queue priority; currently trying: `distance+minutes`, where distance is manhattan distance
 
+Part 2 took about 8 min to refactor.  Somehow I made Part 1 run much quicker (maybe by removing `state.steps` and a single if statement?). Anyway, new times:
+
+```sh
+1 | 251 (308.40433ms)
+2 | 758 (5.262698437s)
+```
+
+This is totally agreeable.
+
+I tried to simplify the `state` type even more, but it didn't seem to affect performance.  Even conditionally calculating the manhattan distance didn't help.  
+
+Part 2 didn't require much at all in terms of changes to my blizzard logic: only needed to add an argument for `minutes int`; so, instead of starting the pathfinding at 0 minutes always, we can set a given time.  And then Part 2 is easy:
+
+```go
+vly := parseInput(data)
+
+// just swap the start and end to go back and forth
+swap := func() {
+	start := vly.start
+	end := vly.end
+	vly.start = end
+	vly.end = start
+}
+
+first := vly.pathFinder(0)
+
+swap()
+
+// start at the minute you finished the last trip
+andBack := vly.pathFinder(first)
+
+swap()
+
+finally := vly.pathFinder(andBack)
+
+return finally
+```
+
+My data structures were separated between a static, unchanging struct, and a dynamic one:
+
+```go
+type valley struct {
+	height, width int
+	start, end    image.Point
+	walls         types.Set[image.Point] // walls don't move
+	blizzards     map[rune]map[image.Point]struct{}
+}
+```
+
+I could probably refactor `blizzards` above to be a `types.Set[image.Point]` also, since I decided it too should not change. The only struct that changes is `state`:
+
+```go
+type state struct {
+	position image.Point
+	minutes  int
+}
+```
+
+And with that I can determine priority (via manhattan distance and time), and whether there's a blizzard overlap (by taking the position, wrapping around the area in each of the 4 directions, and determine if a blizzard is at a starting position `X` number of minutes away):
+
+```go
+width := vly.width - 2   // ignores walls
+height := vly.height - 2 // ignores walls
+
+// check if '<' is `minutes` to the right of `position`
+check := pos
+// Y is actually column; also +/- 1 to handle walls
+check.Y = (check.Y+min-1)%width + 1
+_, ok = vly.blizzards[left][check]
+
+if ok {
+	updateCache(hash, true)
+	return true
+}
+```
+
+I'm frustrated by how complex (though barely) the algorithm is: `check.Y = (check.Y+min-1)%width + 1`.  I'd love to clean that up with better variable names (`Y` in place of `Column` is quite upsetting).  The latter part would look cleaner as a `types.Set` by just doing: `if vly.blizzards[left].Has(check) {}`.
+
+I cached this because I thought it would be quite expensive, though haven't tested without the cache.
+
+A cheap way to avoid allowing the path finder to exit the map was to add a wall above the start:
+
+```go
+// add wall above start to avoid moving out
+valley.walls.Add(image.Point{-1, 1})
+```
+
+This allowed me to not bother with introducing this as extra logic in the path finder.
+
+**Actually**, as of writing this, I realized I should add the same kind of wall at the exit, since Part 2 starts at the exit:
+
+```go
+// add wall below end to avoid moving out
+valley.walls.Add(image.Point{height, width - 2})
+```
+
+**And that saved me 4 seconds! 🤦‍♀️**
+
+```sh
+1 | 251 (319.13061ms)
+2 | 758 (848.897889ms)
+```
+
+Finally, the algorithm I used is a priority queue, probably A* (even though I can't really distinguish between A* and Dijkstra, of BFS for that matter). I believe it's A* because it's "intelligent"™️:
+
+```go
+// prioritize states by distance and minutes?
+// this PQ is in ASC order 🤷‍♀️
+pq.PushValue(&next, distance+next.minutes)
+```
+
+But yes, this is an algorithm that seems to be used quite heavily in AOC: think I've used it 8 times over the last two years.
+
+I was very happy with today's puzzle. It was straight-forward.  I'm glad I treated the blizzards as static, and avoided trying to update all of them every minute.  Laziness makes us better developers.
+
 ### Day 23
 
 **Difficulty: 6/10** ★★★★★★★☆☆☆
