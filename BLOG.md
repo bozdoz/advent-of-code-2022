@@ -1,5 +1,13 @@
 # What Am I Learning Each Day?
 
+### Day 24
+
+**Difficulty: 7/10** ★★★★★★★☆☆☆
+
+**Time: ~2 hrs*
+
+**Part 1 runs in 7.5seconds**.  Not sure what to give for priority queue priority; currently trying: `distance+minutes`, where distance is manhattan distance
+
 ### Day 23
 
 **Difficulty: 6/10** ★★★★★★★☆☆☆
