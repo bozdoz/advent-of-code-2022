@@ -582,6 +582,83 @@ for i := 0; i < len(ordered); {
 
 Inserting array values, and removing array values is still a little annoying.  We'll see how painful Part 2 is later.
 
+### Day 19
+
+**Difficulty: 9/10** ★★★★★★★★★☆
+
+**Time: ~6 hrs**
+
+**Part 1 finished at 4.68s**.  This was very difficult.  I couldn't get the tests running in a decent time.  I tried to prune invalid states and messed up a few times. The data structure I picked was rather difficult.
+
+I started with `[4][4]int` as the blueprint for how to build a robot: 4 types of robot which could require any of 4 types of resource, and then finally a count of those resources needed.
+
+I switched this with a map:
+
+```go
+type resource int
+
+const (
+	ore resource = 1 << iota
+	clay
+	obsidian
+	geode
+)
+
+type blueprint struct {
+	// robot_type->cost_type->cost: ore,clay,obsidian,geode
+	robots map[resource]map[resource]int
+	// bitmask saves time with comparing
+	robotbitmask map[resource]int
+	// figure out when we should stop buying robots
+	maxRobots map[resource]int
+}
+```
+
+This was still annoying.  I still had to iterate everything. In `getNextStates` I did use the bitmasks to save on some for loops:
+
+```go
+// BASICALLY: which robots could we buy next and when can we buy them?
+// and can it happen before the `end`?
+for robot, bitmask := range bp.robotbitmask {
+	// if we have every robot that is needed
+	if bitmask&cur.robotbits == bitmask {
+```
+
+Otherwise, I'd have to iterate the current state's robots to see if it were possible to buy any robot.
+
+Next states was not minute-by-minute but robot-purchase-by-robot-purchase:
+
+```go
+maxTime := 0
+for res, num := range bp.robots[robot] {
+	// costs `num` of `res`
+	time := int(math.Ceil(float64(num-cur.resources[res]) / float64(cur.robots[res])))
+
+	if (cur.time + time) >= end-1 {
+		// we can't actually buy this before the end of time
+		// skip ahead to the end
+		maxTime = end - clone.time - 1
+		break
+	}
+
+	// we have to wait for the resources which take the longest
+	if time > maxTime {
+		maxTime = time
+	}
+	// reduce resources by cost
+	// (could go negative, but we'll increase it soon)
+	clone.resources[res] -= num
+}
+
+// increment time
+totalTime := maxTime + 1
+clone.time += totalTime
+```
+
+For pruning invalid states, I knew I could keep a cache of visited states and ignore those that I already knew had less geodes.  I alsoo removed states that had no geodes at the end or couldn't buy a geode robot at the last minute.
+
+I tried to keep track of earliest geode robot purchase (as I read on Reddit), and prune any state that didn't have a geode robot at that time, and this passed the tests, but it failed on my input data.  My answer with that pruning was 10 less than it should have been.
+
 ### Day 17
 
 **Difficulty: 8/10** ★★★★★★★★☆☆
