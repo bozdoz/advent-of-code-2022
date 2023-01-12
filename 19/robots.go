@@ -94,12 +94,20 @@ type state struct {
 	time              int
 	robotbits         int // bitmask
 	resources, robots map[resource]int
-	parent            *state
+	// parent            *state // debuggging
+	terminalTime         int // we can't buy geodes faster
+	geodesBeforeTerminal int
 }
 
 func (bp blueprint) bestPath(timeLimit int) (best int) {
-	cache := map[string]int{}
+	cache := map[string]struct {
+		geodes int
+		time   int
+	}{}
 	cacheHits := 0
+
+	earliestTerminal := timeLimit
+	geodesAtTerminal := 0
 
 	pq := types.PriorityQueue[state]{}
 
@@ -131,7 +139,7 @@ func (bp blueprint) bestPath(timeLimit int) (best int) {
 			// update best
 			if state.resources[geode] > best {
 				best = state.resources[geode]
-				// fmt.Println("best", best)
+				fmt.Println("best", best, "; remaining", len(pq))
 
 				// if debug {
 				// 	cur := state
@@ -151,11 +159,17 @@ func (bp blueprint) bestPath(timeLimit int) (best int) {
 			key := next.hash()
 
 			// hash, cache
-			geodes, ok := cache[key]
-			isBetter := geodes < next.resources[geode]
+			cached, ok := cache[key]
+			isBetter := next.resources[geode] > cached.geodes && next.time <= cached.time
 
 			if !ok || isBetter {
-				cache[key] = next.resources[geode]
+				cache[key] = struct {
+					geodes int
+					time   int
+				}{
+					geodes: next.resources[geode],
+					time:   next.time,
+				}
 			} else {
 				// worse or equal state
 				cacheHits++
@@ -169,6 +183,16 @@ func (bp blueprint) bestPath(timeLimit int) (best int) {
 			// no time left, or no geode robot at one minute earlier
 			if noGeodes && (timeLeft == 0 || timeLeft == 1 && next.robots[geode] == 0) {
 				continue
+			}
+
+			// we reached terminal velocity at an earlier time with more geodes
+			if next.terminalTime == 0 && next.time > earliestTerminal && next.resources[geode] <= geodesAtTerminal {
+				continue
+			}
+
+			if next.terminalTime != 0 && next.terminalTime < earliestTerminal {
+				earliestTerminal = next.terminalTime
+				geodesAtTerminal = next.geodesBeforeTerminal
 			}
 
 			// pq is in ASC order
@@ -197,6 +221,24 @@ func (cur state) getNextStates(bp blueprint, end int) []state {
 			// changes test from 5sec to 0.3sec
 			if robot != geode && cur.robots[robot] >= bp.maxRobots[robot] {
 				continue
+			}
+
+			// if we gain enough resources to buy a geode robot
+			// each turn, then there's one state left:
+			// buy 1 geode each turn, time == end, add up all geodes
+			if robot == geode {
+				geodeEachTurn := true
+				for res, num := range bp.robots[geode] {
+					if cur.robots[res] < num {
+						geodeEachTurn = false
+						break
+					}
+				}
+
+				if geodeEachTurn {
+					// one remaining state left
+					return []state{terminalVelocity(cur, end)}
+				}
 			}
 
 			// we *might* be able to buy (if time permits), but when (and how)?
@@ -252,13 +294,34 @@ func (cur state) getNextStates(bp blueprint, end int) []state {
 	return nextStates
 }
 
+// last state is buy geode every minute;
+// we don't care about resources other than geode; because we're lazy
+func terminalVelocity(st state, timeLimit int) state {
+	// we buy a bot and accumulate resources
+	diff := timeLimit - st.time
+	copy := st.copy()
+	copy.time = timeLimit
+	copy.robots[geode] += diff
+	// previous robots accumulate geodes
+	copy.resources[geode] += st.robots[geode] * diff
+	// new robots accumulate geodes
+	// example: given diff == 5 -> 4+3+2+1 == 5*4/2
+	copy.resources[geode] += (diff*diff - 1) / 2
+	// let's keep track of the time this state became terminal
+	// for pruning later
+	copy.terminalTime = st.time
+	copy.geodesBeforeTerminal = st.resources[geode]
+
+	return copy
+}
+
 func (s *state) copy() state {
 	clone := state{
 		time:      s.time,
 		robotbits: s.robotbits,
 		resources: map[resource]int{},
 		robots:    map[resource]int{},
-		parent:    s,
+		// parent:    s, // debugging
 	}
 
 	for k, v := range s.resources {
@@ -282,5 +345,5 @@ func (s state) priority() (p int) {
 
 func (s state) hash() string {
 	// cache by time & robots (not geodes)
-	return fmt.Sprint(s.time, s.resources[ore], s.resources[clay], s.resources[obsidian], s.robots[ore], s.robots[clay], s.robots[obsidian])
+	return fmt.Sprint(s.resources[ore], s.resources[clay], s.resources[obsidian], s.robots[ore], s.robots[clay], s.robots[obsidian])
 }

@@ -86,3 +86,56 @@ func TestGetNextStatesTwo(t *testing.T) {
 		}
 	}
 }
+
+func TestTerminalVelociy(t *testing.T) {
+	end := 10
+	st := state{
+		time: 8,
+		resources: map[resource]int{
+			geode: 0,
+		},
+		robots: map[resource]int{
+			geode: 0,
+		},
+	}
+
+	assert := func(t testing.TB, bots, geodes int) {
+		t.Helper()
+
+		terminal := terminalVelocity(st, end)
+		got := terminal.robots[geode]
+
+		if got != bots {
+			t.Errorf("expected bots: %v got: %v", bots, got)
+		}
+
+		got = terminal.resources[geode]
+
+		if got != geodes {
+			t.Errorf("expected geodes: %v got: %v", geodes, got)
+		}
+	}
+
+	assert(t, 2, 1)
+
+	st.time = 7
+
+	assert(t, 3, 3)
+
+	st.resources[geode] = 5
+
+	assert(t, 3, 3+5)
+
+	st.robots[geode] = 5
+
+	assert(t, 3+5, 3+5+(3*5))
+
+	terminal := terminalVelocity(st, end)
+
+	got := terminal.time
+	want := end
+
+	if got != want {
+		t.Errorf("expected time: %v got: %v", want, got)
+	}
+}
