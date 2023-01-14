@@ -737,6 +737,25 @@ And(!) my hash function was inaccurate.  I was previously omitting `geode` robot
 
 I'm glad it's over.
 
+One thing that I was told on Reddit, paraphrased: BFS is good for specific targets, and DFS is good for some "best of" scenario, where there is no explicit end goal.
+
+### Day 18
+
+**Difficulty: 5/10** ★★★★★☆☆☆☆☆
+
+**Time: ~2 hrs**
+
+```sh
+1 | 4536 (123.357198ms)
+2 | 2606 (14.013846ms)
+```
+
+I originally had a data structure of `[]cube` but opted for `map[cube]struct{}` for ease of checking if a cube was "lava" or not.  Most of today was verbose, with lots of lines for min/max, in order to get the bounds of the cube I needed to "flood fill".
+
+I did another recursive function within a closure.
+
+Overall seemed quite easy, though I did read up on other solutions before I started this one, so I knew what I was about to get into.
+
 ### Day 17
 
 **Difficulty: 8/10** ★★★★★★★★☆☆
