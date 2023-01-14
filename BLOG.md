@@ -584,9 +584,9 @@ Inserting array values, and removing array values is still a little annoying.  W
 
 ### Day 19
 
-**Difficulty: 9/10** ★★★★★★★★★☆
+**Difficulty: 10/10** ★★★★★★★★★★
 
-**Time: ~6 hrs**
+**Time: >10 hrs**
 
 **Part 1 finished at 4.68s**.  This was very difficult.  I couldn't get the tests running in a decent time.  I tried to prune invalid states and messed up a few times. The data structure I picked was rather difficult.
 
@@ -655,9 +655,87 @@ totalTime := maxTime + 1
 clone.time += totalTime
 ```
 
-For pruning invalid states, I knew I could keep a cache of visited states and ignore those that I already knew had less geodes.  I alsoo removed states that had no geodes at the end or couldn't buy a geode robot at the last minute.
+For pruning invalid states, I knew I could keep a cache of visited states and ignore those that I already knew had less geodes.  I also removed states that had no geodes at the end or couldn't buy a geode robot at the last minute.
 
 I tried to keep track of earliest geode robot purchase (as I read on Reddit), and prune any state that didn't have a geode robot at that time, and this passed the tests, but it failed on my input data.  My answer with that pruning was 10 less than it should have been.
+
+#### Day 19 Update (Part 2)
+
+Wow.  I had to overhaul the code I wrote, and switch from breadth-first-search to depth-first-search. Finally decent results.
+
+```sh
+1 | 1144 (1.550023196s)
+2 | 19980 (2.933193562s)
+```
+
+I simplified state quite a bit:
+
+```go
+type state struct {
+	time              int
+	resources, robots map[resource]int
+}
+```
+
+This was my **first time** recursing inside a closure:
+
+```go
+
+// *first time* recurse inside a closure :D
+var dfs func(st state)
+
+func (bp blueprint) bestPath(timeLimit int) (best int) {
+	cache := map[string]struct{}{}
+
+	dfs = func(st state) {
+		// ...
+		dfs(next)
+	}
+	// ...
+}
+```
+
+I iterated the resources in order this time, to prioritize states with geodes more:
+
+```go
+var resources = [4]resource{geode, obsidian, clay, ore}
+
+// ... 
+
+for _, robot := range resources {
+```
+
+The biggest time saver was checking if a state could *possibly* get better (i.e. could buy a geode robot and get max geodes for the rest of time):
+
+```go
+// pruning
+// could it possibly be better?
+if best > 0 {
+	max := getMaxGeodesFromTimeLeft(next, timeLimit-next.time)
+	if max <= best {
+		// ! this saved perhaps the most time
+		continue
+	}
+}
+
+// ...
+
+func getMaxGeodesFromTimeLeft(st state, time int) int {
+	// current geodes
+	cur := st.resources[geode]
+	// previous robots accumulate geodes
+	rate := st.robots[geode] * time
+	// new robots accumulate geodes
+	// example: given diff == 5 -> 4+3+2+1 == 5*4/2
+	maxBots := (time * (time - 1)) / 2
+
+	return cur + rate + maxBots
+}
+```
+
+And(!) my hash function was inaccurate.  I was previously omitting `geode` robots and resources so that I could compare with previous values to keep the best ones.  That produced incorrect answers.
+
+I'm glad it's over.
 
 ### Day 17
 
