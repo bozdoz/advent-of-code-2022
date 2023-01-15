@@ -14,9 +14,9 @@ var fileReader = utils.ReadLines
 type outType = int
 
 func partOne(data inType) (ans outType) {
-	list := parseInput(data)
+	list := parseInput(data, 1)
 
-	ordered := reOrder(list)
+	ordered := reOrder(list, 1)
 
 	zeroIndex := 0
 
@@ -35,9 +35,9 @@ func partOne(data inType) (ans outType) {
 }
 
 func partTwo(data inType) (ans outType) {
-	list := parseInput(data)
+	list := parseInput(data, 811589153)
 
-	ordered := reOrder(list)
+	ordered := reOrder(list, 10)
 
 	zeroIndex := 0
 
