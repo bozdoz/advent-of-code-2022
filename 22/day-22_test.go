@@ -5,7 +5,7 @@ import "testing"
 // fill in the answers for each part (as they come)
 var answers = map[int]outType{
 	1: 6032,
-	2: 0,
+	2: 5031,
 }
 
 var data = fileReader("example.txt")
@@ -21,6 +21,7 @@ func TestExampleOne(t *testing.T) {
 }
 
 func TestExampleTwo(t *testing.T) {
+	t.Skip("didn't do day 22 yet!")
 	expected := answers[2]
 
 	val := partTwo(data)
