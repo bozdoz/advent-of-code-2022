@@ -1,63 +1,105 @@
 package main
 
 import (
+	"container/list"
+	"fmt"
+
 	"github.com/bozdoz/advent-of-code-2022/utils"
 )
 
-func parseInput(data inType) []int {
+func parseInput(data inType, mul int) []int {
 	list := make([]int, len(data))
 
 	for i, line := range data {
-		list[i] = utils.ParseInt(line)
+		list[i] = utils.ParseInt(line) * mul
 	}
 
 	return list
 }
 
-type sorting struct {
-	value   int
-	visited bool
+type sorted struct {
+	index, value int
 }
 
-func reOrder(list []int) []int {
-	ordered := make([]sorting, len(list))
+func reOrder(orig []int, mixes int) []int {
+	length := len(orig)
 
-	for i, v := range list {
-		ordered[i] = sorting{value: v}
+	// original order with pointers to current
+	originalNodes := make([]*list.Element, length)
+	// current order
+	currentOrder := list.New()
+
+	for i, item := range orig {
+		originalNodes[i] = currentOrder.PushBack(sorted{i, item})
 	}
 
-	for i := 0; i < len(ordered); {
-		s := ordered[i]
+	// TODO: do this X number of mixes
+	for i := 0; i < length; i++ {
+		node := originalNodes[i]
 
-		if s.visited {
-			i++
-			continue
-		}
-		newI := (i + s.value) % (len(ordered) - 1)
+		item := node.Value.(sorted)
+
+		oldI := item.index
+		newI := (oldI + item.value) % (length - 1)
+
+		// fmt.Println(item.value, oldI, newI)
+
 		if newI < 0 {
-			newI %= len(ordered)
-			newI = len(ordered) + newI - 1
+			newI %= length
+			newI = length - 1 + newI
 		}
 		if newI == 0 {
-			newI = len(ordered) - 1
+			newI = length - 1
 		}
 
-		// remove
-		ordered = append(ordered[:i], ordered[i+1:]...)
-		// insert
-		ordered = append(ordered[:newI], append([]sorting{{
-			value:   s.value,
-			visited: true,
-		}}, ordered[newI:]...)...)
+		// compare newI to oldI, and move in that direction
+		diff := newI - oldI
 
-		// don't adjust i; we revisit this index
+		if diff < 0 {
+			// move back
+			for diff != 0 {
+				diff++
+				if node.Prev() != nil {
+					currentOrder.MoveBefore(node, node.Prev())
+				}
+				// wrap around
+				if currentOrder.Front() == node {
+					currentOrder.MoveToBack(node)
+				}
+			}
+		} else {
+			// move forward
+			for diff != 0 {
+				diff--
+				if node.Next() != nil {
+					currentOrder.MoveAfter(node, node.Next())
+				}
+				// wrap around
+				if currentOrder.Back() == node {
+					currentOrder.MoveToFront(node)
+				}
+			}
+		}
+
+		// fmt.Print("i", i, " ")
+		// debug(currentOrder)
 	}
 
-	out := make([]int, len(list))
+	out := make([]int, 0, length)
 
-	for i, s := range ordered {
-		out[i] = s.value
+	for e := currentOrder.Front(); e != nil; e = e.Next() {
+		out = append(out, e.Value.(sorted).value)
 	}
 
 	return out
+}
+
+func debug(l *list.List) {
+	out := make([]int, 0, l.Len())
+
+	for e := l.Front(); e != nil; e = e.Next() {
+		out = append(out, e.Value.(sorted).value)
+	}
+
+	fmt.Println("[debug]", out)
 }
