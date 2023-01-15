@@ -4,40 +4,38 @@ import (
 	"github.com/bozdoz/advent-of-code-2022/utils"
 )
 
-func parseInput(data inType, mul int) []int {
-	list := make([]int, len(data))
+func parseInput(data inType, mul int) []*int {
+	list := make([]*int, len(data))
 
 	for i, line := range data {
-		list[i] = utils.ParseInt(line) * mul
+		val := utils.ParseInt(line) * mul
+		list[i] = &val
 	}
 
 	return list
 }
 
-func reOrder(orig []int, mixes int) []int {
+// sorts list
+func reOrder(orig []*int, mixes int) (sorted []*int, zeroIndex int) {
 	length := len(orig)
 
-	// original order with pointers
-	originalNodes := make([]*int, length)
 	// current order with pointers to the original
 	currentOrder := make([]*int, length)
 
-	for i := range orig {
-		originalNodes[i] = &orig[i]
-		currentOrder[i] = originalNodes[i]
-	}
+	copy(currentOrder, orig)
 
-	for mixes > 0 {
-		mixes--
-		for i := 0; i < length; i++ {
-			node := originalNodes[i]
-
+	for lastIndex := length - 1; mixes > 0; mixes-- {
+		for _, node := range orig {
 			// need to get current index; so have to loop over the slice, I believe
 			oldI := indexOf(currentOrder, node)
-			newI := (oldI + *node) % (length - 1)
+			newI := (oldI + *node) % lastIndex
 
 			if newI < 0 {
-				newI = length - 1 + newI
+				newI = lastIndex + newI
+			}
+
+			if oldI == newI {
+				continue
 			}
 
 			// remove
@@ -47,15 +45,18 @@ func reOrder(orig []int, mixes int) []int {
 		}
 	}
 
-	out := make([]int, length)
-
+	// find zero
 	for i, v := range currentOrder {
-		out[i] = *v
+		if *v == 0 {
+			zeroIndex = i
+			break
+		}
 	}
 
-	return out
+	return currentOrder, zeroIndex
 }
 
+// get index of pointer, not value
 func indexOf(l []*int, x *int) (i int) {
 	for i := range l {
 		if x == l[i] {
