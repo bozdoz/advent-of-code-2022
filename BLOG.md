@@ -545,9 +545,9 @@ Times: `~2ms` each part
 
 ### Day 20
 
-**Difficulty: ?/10** ☆☆☆☆☆☆☆☆☆☆
+**Difficulty: 6/10** ★★★★★★☆☆☆☆
 
-**Time: ~20 mins**
+**Time: ~90 mins**
 
 Ordering the list for Part 1 was at first hard to grasp, but I seemed to luck out.  I iterated the list, kept track if it was `visited` or not, and then either incremented `i` by 1 or 0 (to check the likely next unvisited value).
 
@@ -581,6 +581,61 @@ for i := 0; i < len(ordered); {
 ```
 
 Inserting array values, and removing array values is still a little annoying.  We'll see how painful Part 2 is later.
+
+Part 2 was a little harder to grasp.  I found it very hard to debug too, since all the numbers are obscured by the `decryptioin key`.  Also, keeping track of a list, which is being shuffled 10 times is difficult.  I eventually settled on keeping two lists: a slice of original nodes which represented the numbers, and a `container/list` linked list which had pointers to the numbers, and represented the current order.  This worked!  I did however have to get the current index on each iteration, and cast(?) the `any` types back to get values.  This ran in just over a second for part 2:
+
+```sh
+1 | 27726 (82.975042ms)
+2 | 4275451658004 (1.400359475s)
+```
+
+I realized this was over-engineered and could just have two slices instead, keeping a lot of the logic for new indices as I had in Part 1:
+
+```go
+func reOrder(orig []int, mixes int) []int {
+	length := len(orig)
+
+	// original order with pointers
+	originalNodes := make([]*int, length)
+	// current order with pointers to the original
+	currentOrder := make([]*int, length)
+
+	for i := range orig {
+		originalNodes[i] = &orig[i]
+		currentOrder[i] = originalNodes[i]
+	}
+
+	for mixes > 0 {
+		mixes--
+		for i := 0; i < length; i++ {
+			node := originalNodes[i]
+
+			// need to get current index; so have to loop over the slice, I believe
+			oldI := indexOf(currentOrder, node)
+			newI := (oldI + *node) % (length - 1)
+
+			if newI < 0 {
+				newI = length - 1 + newI
+			}
+
+			// remove
+			currentOrder = append(currentOrder[:oldI], currentOrder[oldI+1:]...)
+			// insert
+			currentOrder = append(currentOrder[:newI], append([]*int{node}, currentOrder[newI:]...)...)
+		}
+	}
+
+	out := make([]int, length)
+
+	for i, v := range currentOrder {
+		out[i] = *v
+	}
+
+	return out
+}
+```
+
+This was challenging, because I thought I could keep track of the index internally somewhere; but what I didn't appreciate is that I'd have to alter the index of every node between `oldIndex` and `newIndex` when moving. Adding an `indexOf` function seemed like a fine cop-out.
 
 ### Day 19
 
