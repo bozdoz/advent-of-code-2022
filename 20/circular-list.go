@@ -33,56 +33,38 @@ func reOrder(orig []int, mixes int) []int {
 		originalNodes[i] = currentOrder.PushBack(sorted{i, item})
 	}
 
-	// TODO: do this X number of mixes
-	for i := 0; i < length; i++ {
-		node := originalNodes[i]
+	for mixes > 0 {
+		mixes--
+		for i := 0; i < length; i++ {
+			node := originalNodes[i]
 
-		item := node.Value.(sorted)
+			item := node.Value.(sorted)
 
-		oldI := item.index
-		newI := (oldI + item.value) % (length - 1)
+			// this *feels* wrong; can't this just be a slice?
+			oldI := indexOf(currentOrder, node)
+			newI := (oldI + item.value) % (length - 1)
 
-		// fmt.Println(item.value, oldI, newI)
+			if newI < 0 {
+				newI = length - 1 + newI
+			}
 
-		if newI < 0 {
-			newI %= length
-			newI = length - 1 + newI
-		}
-		if newI == 0 {
-			newI = length - 1
-		}
+			// compare newI to oldI, and move in that direction
+			diff := newI - oldI
 
-		// compare newI to oldI, and move in that direction
-		diff := newI - oldI
-
-		if diff < 0 {
-			// move back
-			for diff != 0 {
-				diff++
-				if node.Prev() != nil {
+			if diff < 0 {
+				// move back
+				for diff != 0 {
+					diff++
 					currentOrder.MoveBefore(node, node.Prev())
 				}
-				// wrap around
-				if currentOrder.Front() == node {
-					currentOrder.MoveToBack(node)
-				}
-			}
-		} else {
-			// move forward
-			for diff != 0 {
-				diff--
-				if node.Next() != nil {
+			} else {
+				// move forward
+				for diff != 0 {
+					diff--
 					currentOrder.MoveAfter(node, node.Next())
-				}
-				// wrap around
-				if currentOrder.Back() == node {
-					currentOrder.MoveToFront(node)
 				}
 			}
 		}
-
-		// fmt.Print("i", i, " ")
-		// debug(currentOrder)
 	}
 
 	out := make([]int, 0, length)
@@ -92,6 +74,17 @@ func reOrder(orig []int, mixes int) []int {
 	}
 
 	return out
+}
+
+func indexOf(l *list.List, x *list.Element) (i int) {
+	for e := l.Front(); e != nil; e = e.Next() {
+		if e == x {
+			return
+		}
+		i++
+	}
+
+	return -1
 }
 
 func debug(l *list.List) {

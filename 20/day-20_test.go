@@ -21,8 +21,6 @@ func TestExampleOne(t *testing.T) {
 }
 
 func TestExampleTwo(t *testing.T) {
-	t.Skip("haven't finished part 2")
-
 	expected := answers[2]
 
 	val := partTwo(data)
