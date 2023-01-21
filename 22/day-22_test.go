@@ -1,6 +1,8 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 // fill in the answers for each part (as they come)
 var answers = map[int]outType{
@@ -9,6 +11,11 @@ var answers = map[int]outType{
 }
 
 var data = fileReader("example.txt")
+
+func init() {
+	// example square size is 4
+	squareSize = 4
+}
 
 func TestExampleOne(t *testing.T) {
 	expected := answers[1]
@@ -21,7 +28,6 @@ func TestExampleOne(t *testing.T) {
 }
 
 func TestExampleTwo(t *testing.T) {
-	t.Skip("didn't do day 22 yet!")
 	expected := answers[2]
 
 	val := partTwo(data)
@@ -29,4 +35,26 @@ func TestExampleTwo(t *testing.T) {
 	if val != expected {
 		t.Errorf("Answer should be %v, but got %v", expected, val)
 	}
+}
+
+func TestCubeFold(t *testing.T) {
+	board := parseInput(data)
+
+	board.squares = cubeFold(board)
+
+	rotate := func(t testing.TB, cur [2]int, dir direction, wantPos [2]int, wantDir direction) {
+		next, dir := board.rotateTile(cur, dir)
+
+		if dir != wantDir {
+			t.Errorf("want direction %v, but got %v", wantDir, dir)
+		}
+
+		if next != wantPos {
+			t.Errorf("wanted %v, got: %v", wantPos, next)
+		}
+	}
+
+	rotate(t, [2]int{10, 15}, right, [2]int{1, 11}, left)
+
+	rotate(t, [2]int{4, 5}, up, [2]int{1, 8}, right)
 }

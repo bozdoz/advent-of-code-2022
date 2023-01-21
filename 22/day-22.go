@@ -14,13 +14,17 @@ type outType = int
 func partOne(data inType) (ans outType) {
 	board := parseInput(data)
 
-	state := start(board)
+	state := start(board, 1)
 
 	return 1000*(state.row+1) + 4*(state.col+1) + int(state.face)
 }
 
 func partTwo(data inType) (ans outType) {
-	return
+	board := parseInput(data)
+
+	state := start(board, 2)
+
+	return 1000*(state.row+1) + 4*(state.col+1) + int(state.face)
 }
 
 //

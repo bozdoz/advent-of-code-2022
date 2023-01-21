@@ -459,6 +459,36 @@ Anyway, I suspect Part 2 will be hell.
 
 **Part 1 ran in 5ms**
 
+Part 2 is folding the 2d map into a cube. Here's my idea:
+
+![cube folding](https://user-images.githubusercontent.com/1410985/212558442-ed9b1524-9cae-482e-888f-b80334084e99.png "cube folding")
+
+Tried to rotate the location on a cube face using a rotation algorithm, but doesn't seem to work because the height/width are even numbers, and there can't be an integer origin.  Ran into too many issues with this code, so decided to change it:
+
+```go
+// rotate current position until current dir lines up with new dir
+rotations := int(newDir - dir)
+
+// turn 270deg into 90deg equivalent
+if rotations%3 == 0 {
+	// turns -3 into 1 and 3 into -1
+	rotations = -rotations % 2
+}
+
+switch rotations {
+	case 2, -2: // rotate 180
+		fromOrigin = fromOrigin.Mul(-1)
+	case 1, -1: // rotate 90 or -90
+		if rotations == 1 {
+			// A,B -> B,-A (clockwise)
+			fromOrigin = image.Point{fromOrigin.Y, -fromOrigin.X}
+		} else {
+			// A,B -> -B,A (counter-clockwise)
+			fromOrigin = image.Point{-fromOrigin.Y, fromOrigin.X}
+		}
+}
+```
+
 ### Day 21
 
 **Difficulty: 2/10** ★★☆☆☆☆☆☆☆☆
@@ -582,7 +612,7 @@ for i := 0; i < len(ordered); {
 
 Inserting array values, and removing array values is still a little annoying.  We'll see how painful Part 2 is later.
 
-Part 2 was a little harder to grasp.  I found it very hard to debug too, since all the numbers are obscured by the `decryptioin key`.  Also, keeping track of a list, which is being shuffled 10 times is difficult.  I eventually settled on keeping two lists: a slice of original nodes which represented the numbers, and a `container/list` linked list which had pointers to the numbers, and represented the current order.  This worked!  I did however have to get the current index on each iteration, and cast(?) the `any` types back to get values.  This ran in just over a second for part 2:
+Part 2 was a little harder to grasp.  I found it very hard to debug too, since all the numbers are obscured by the `decryption key`.  Also, keeping track of a list, which is being shuffled 10 times is difficult.  I eventually settled on keeping two lists: a slice of original nodes which represented the numbers, and a `container/list` linked list which had pointers to the numbers, and represented the current order.  This worked!  I did however have to get the current index on each iteration, and cast(?) the `any` types back to get values.  This ran in just over a second for part 2:
 
 ```sh
 1 | 27726 (82.975042ms)
@@ -633,6 +663,13 @@ func reOrder(orig []int, mixes int) []int {
 
 	return out
 }
+```
+
+After converting into just two slices, I got the times down a little bit (half the time for part 2): 
+
+```sh
+1 | 27726 (77.528845ms)
+2 | 4275451658004 (722.292438ms)
 ```
 
 This was challenging, because I thought I could keep track of the index internally somewhere; but what I didn't appreciate is that I'd have to alter the index of every node between `oldIndex` and `newIndex` when moving. Adding an `indexOf` function seemed like a fine cop-out.
