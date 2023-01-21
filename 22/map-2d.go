@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image"
 	"strings"
 
 	"github.com/bozdoz/advent-of-code-2022/utils"
@@ -15,10 +16,10 @@ const (
 	wall  tile = '#'
 )
 
-type face int
+type direction int
 
 const (
-	right face = iota
+	right direction = iota
 	down
 	left
 	up
@@ -41,6 +42,7 @@ type board struct {
 	height, width int
 	start         [2]int
 	instructions  []instruction
+	squares       map[image.Rectangle]*square // for 3d
 }
 
 func parseInput(data inType) board {
@@ -119,10 +121,19 @@ func (b *board) set(r, c int, val tile) {
 }
 
 func (b *board) get(r, c int) (val tile) {
-	return b.grid[r][c]
+	tile, ok := b.grid[r][c]
+
+	// believe I solved this differently in part 1
+	// needs to check if empty space here, as empty
+	// should be the default, and not `0`
+	if !ok {
+		return empty
+	}
+
+	return tile
 }
 
-func moveOne(pos *[2]int, dir face) {
+func moveOne(pos *[2]int, dir direction) {
 	switch dir {
 	case right:
 		pos[1]++
@@ -136,7 +147,7 @@ func moveOne(pos *[2]int, dir face) {
 }
 
 // rope around if there is empty space
-func (b *board) getNext(r, c int, dir face) (next [2]int, hitWall bool) {
+func (b *board) getNext(r, c int, dir direction) (next [2]int, hitWall bool) {
 	cur := [2]int{r, c}
 
 	for {
@@ -144,20 +155,19 @@ func (b *board) getNext(r, c int, dir face) (next [2]int, hitWall bool) {
 		moveOne(&next, dir)
 
 		// negative numbers
-		if dir > 1 {
-			if next[0] < 0 {
-				next[0] = b.height + next[0]
-			} else if next[1] < 0 {
-				next[1] = b.width + next[1]
-			}
+		if next[0] < 0 {
+			next[0] = b.height + next[0]
+		} else if next[1] < 0 {
+			next[1] = b.width + next[1]
 		}
 
-		// wrap around
+		// wrap around (I wonder if it's better to check if greater first)
 		next[0] %= b.height
 		next[1] %= b.width
 
 		cell := b.get(next[0], next[1])
 
+		// we ignored empty here and just kept looping
 		if cell == open {
 			return
 		}
@@ -171,28 +181,39 @@ func (b *board) getNext(r, c int, dir face) (next [2]int, hitWall bool) {
 }
 
 type state struct {
+	// TODO: maybe just [2]int?
 	row, col int
-	face     face
+	face     direction
 }
 
-func start(b board) state {
+func start(b board, part int) state {
 	cur := b.start
 	// start looking right
 	dir := right
 	st := state{cur[0], cur[1], dir}
 
+	if part == 2 {
+		// 3d needs the faces of the cube
+		b.squares = cubeFold(b)
+	}
+
 	// get movement instructions
 	for _, inst := range b.instructions {
 		if inst.command == rotate {
-			dir += face(inst.value)
+			dir += direction(inst.value)
 			if dir == -1 {
 				dir = 3
 			} else if dir == 4 {
 				dir = 0
 			}
 		} else {
-			// move by an amount
-			cur = b.move(cur, dir, inst.value)
+			if part == 1 {
+				// move by an amount
+				cur = b.move(cur, dir, inst.value)
+			} else {
+				// move by an amount
+				cur, dir = b.move3d(cur, dir, inst.value)
+			}
 		}
 		st = state{cur[0], cur[1], dir}
 	}
@@ -200,7 +221,7 @@ func start(b board) state {
 	return st
 }
 
-func (b board) move(cur [2]int, dir face, steps int) [2]int {
+func (b board) move(cur [2]int, dir direction, steps int) [2]int {
 	i := 0
 
 	for i < steps {
@@ -218,12 +239,30 @@ func (b board) move(cur [2]int, dir face, steps int) [2]int {
 	return cur
 }
 
+//
+// string representations
+//
+
 func (st state) String() (out string) {
-	dir := map[face]string{
+	dir := map[direction]string{
 		down:  "D",
 		left:  "L",
 		up:    "U",
 		right: "R",
 	}
 	return fmt.Sprintf("[ %d %d ] %s", st.row, st.col, dir[st.face])
+}
+
+func (d direction) String() string {
+	switch d {
+	case right:
+		return "R"
+	case left:
+		return "L"
+	case up:
+		return "U"
+	case down:
+		return "D"
+	}
+	return ""
 }
