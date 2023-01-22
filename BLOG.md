@@ -459,34 +459,162 @@ Anyway, I suspect Part 2 will be hell.
 
 **Part 1 ran in 5ms**
 
-Part 2 is folding the 2d map into a cube. Here's my idea:
+Part 2 is folding the 2d map into a cube. Here's my idea: 
+
+1. breadth-first search from each cube face edge
+1. nearest edge of a cube face that isn't already a neighbour is the neighbouring edge
+1. we can get the from-direction easily from the initial step, and to-direction is the last step's direction
+
+![cube face neighbours and their edges](https://user-images.githubusercontent.com/1410985/213936714-c54a0f7c-af49-48c5-b2f6-55a2c8f873a3.png "cube face neighbours and their edges")
+
+I accomplished this by using `image.Rectangle` to find non-empty tiles and get their associated squares (cube faces).  Then used a priority queue where each squares neighbouring square is searched with priority of `0`; on each steps search, the priority is increased by `1`, so that we can actually get the nearest cube face for **each** square in the same `loop`.
 
 ![cube folding](https://user-images.githubusercontent.com/1410985/212558442-ed9b1524-9cae-482e-888f-b80334084e99.png "cube folding")
 
-Tried to rotate the location on a cube face using a rotation algorithm, but doesn't seem to work because the height/width are even numbers, and there can't be an integer origin.  Ran into too many issues with this code, so decided to change it:
 
 ```go
-// rotate current position until current dir lines up with new dir
-rotations := int(newDir - dir)
+neighboursFound := 0
+// 6 faces have 4 neighbours each
+// we can break after 6*4 neighbours found
+neighboursTotal := 6 * 4
 
-// turn 270deg into 90deg equivalent
-if rotations%3 == 0 {
-	// turns -3 into 1 and 3 into -1
-	rotations = -rotations % 2
-}
+for neighboursFound != neighboursTotal {
+	cur := pq.Get()
 
-switch rotations {
-	case 2, -2: // rotate 180
-		fromOrigin = fromOrigin.Mul(-1)
-	case 1, -1: // rotate 90 or -90
-		if rotations == 1 {
-			// A,B -> B,-A (clockwise)
-			fromOrigin = image.Point{fromOrigin.Y, -fromOrigin.X}
-		} else {
-			// A,B -> -B,A (counter-clockwise)
-			fromOrigin = image.Point{-fromOrigin.Y, fromOrigin.X}
+	// stop checking for square neighbours if they have 4
+	if cur.square.neighboursFound == 4 {
+		continue
+	}
+
+	sq, isSquare := squares[cur.currentRect]
+
+	if sq == cur.square {
+		// thou shalt not be neighbours with thyself
+		continue
+	}
+
+	if isSquare {
+		// found something!
+		added := cur.square.addNeighbour(sq, cur.fromDir, cur.toDir)
+
+		// it's not added if the edge is already taken or the
+		// square is already a neighbour
+		if added {
+			neighboursFound += 2
 		}
+		continue
+	}
+
+	// else, continue path-finding
+	for i, vec := range neighbours {
+		dir := direction(i)
+		nextRect := cur.currentRect.Add(vec)
+
+		pq.PushValue(&state{
+			square:      cur.square,
+			fromDir:     cur.fromDir,
+			toDir:       dir,
+			currentRect: nextRect,
+			priority:    cur.priority + 1,
+		}, cur.priority+1)
+	}
 }
+```
+
+I originally ran into issues with rotating; given the squares have a size of even numbers and I must have run into issues with transforming the correct answer into an `int`; then ran into the same issues with rounding after finding another algorithm for rotating.
+
+**Issue with floats (off by one error):**
+
+```go
+// rotate a point around an origin algorithm
+px, py := float64(curPoint.X), float64(curPoint.Y)
+origin := rect.Min.Add(size.Div(2))
+ox, oy := float64(origin.X)-0.5, float64(origin.Y)-0.5
+// angle in radians 🤦‍♂️
+// inverse to go clockwise
+theta := -(math.Pi / 2) * float64(rotations)
+
+// TODO: Need math.Round here!
+rx := math.Cos(theta)*(px-ox) - math.Sin(theta)*(py-oy) + ox
+ry := math.Sin(theta)*(px-ox) + math.Cos(theta)*(py-oy) + oy
+
+next = [2]int{int(rx), int(ry)}
+fmt.Println(rx, ry, next)
+```
+
+The `TODO` there says it all, I hope; here's what I was getting in the test:
+
+```sh
+=== RUN   TestCubeFoldFifty
+9.000000000000005 99 [9 99]
+199 8.999999999999998 [199 8]
+    day-22_test.go:76: wanted [0 59], got: [0 58]
+--- FAIL: TestCubeFoldFifty (2.26s)
+```
+
+I think my logic was straight-forward; however, it was complex.  Also my data structure probably should have changed.  In too many places, I was swapping between `r int, c int` and `[2]int` and `image.Point`.  Given the 3d-nature of the puzzle, I probably should have stuck with `image.Point`, as it became incredibly useful to work with it and `image.Rectangle`.
+
+Here's part of the ridiculous swapping, and the use of `image.Rectangle.Mod`:
+
+```go
+next = [2]int{int(rx), int(ry)}
+
+// move in new direction by one
+moveOne(&next, newDir)
+
+// annoying transitions here
+curPoint = image.Point{next[0], next[1]}
+
+// mod to next cube face (mod is virtually teleporting)
+curPoint = curPoint.Mod(neighbour.sq.rect)
+
+// set next for outer for loop to check for walls
+next = [2]int{curPoint.X, curPoint.Y}
+```
+
+So, let's try to visualize this, suppose we're moving from A, moving up, which should line up with B, moving right:
+
+```sh
+  B.
+  ..
+A...
+....
+```
+
+We take A's square, and rotate it (90deg clockwise in this case) so that the edge is lined up with B's square (the inverse direction really, so they'd touch if they were next to each other):
+
+```sh
+  B.
+  ..
+.A..
+....
+```
+
+Then, the `moveOne` function moves in the new direction (**right**):
+
+```sh
+  B.
+  ..
+..A.
+....
+```
+
+Then, we use `image.Rectangle.Mod` to run the modulus operator on both `X` and `Y` of a given `image.Point`, essentially moving the point `A` into `B`'s square, in the equivalent place:
+
+```sh
+  A.
+  ..
+....
+....
+```
+
+This works in non-2x2-squares too, obviously.
+
+This solution runs fast enough:
+
+```sh
+1 | 131052 (8.646415ms)
+2 | 4578 (1.600803891s)
 ```
 
 ### Day 21

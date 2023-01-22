@@ -38,7 +38,7 @@ func TestExampleTwo(t *testing.T) {
 }
 
 func TestCubeFold(t *testing.T) {
-	board := parseInput(data)
+	board := parseInput(data, 4)
 
 	board.squares = cubeFold(board)
 
@@ -57,4 +57,29 @@ func TestCubeFold(t *testing.T) {
 	rotate(t, [2]int{10, 15}, right, [2]int{1, 11}, left)
 
 	rotate(t, [2]int{4, 5}, up, [2]int{1, 8}, right)
+}
+
+// debug actual data
+func TestCubeFoldFifty(t *testing.T) {
+	var actual = fileReader("input.txt")
+
+	board := parseInput(actual, 50)
+
+	board.squares = cubeFold(board)
+
+	rotate := func(t testing.TB, cur [2]int, dir direction, wantPos [2]int, wantDir direction) {
+		next, dir := board.rotateTile(cur, dir)
+
+		if dir != wantDir {
+			t.Errorf("want direction %v, but got %v", wantDir, dir)
+		}
+
+		if next != wantPos {
+			t.Errorf("wanted %v, got: %v", wantPos, next)
+		}
+	}
+
+	// getting a rounding error on these
+	rotate(t, [2]int{0, 59}, up, [2]int{159, 0}, right)
+	rotate(t, [2]int{159, 0}, left, [2]int{0, 59}, down)
 }

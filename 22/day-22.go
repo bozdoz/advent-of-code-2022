@@ -11,8 +11,11 @@ var fileReader = utils.ReadEmptyLineGroups
 // today's output data type
 type outType = int
 
+// overwrite in tests
+var squareSize = 50
+
 func partOne(data inType) (ans outType) {
-	board := parseInput(data)
+	board := parseInput(data, squareSize)
 
 	state := start(board, 1)
 
@@ -20,7 +23,7 @@ func partOne(data inType) (ans outType) {
 }
 
 func partTwo(data inType) (ans outType) {
-	board := parseInput(data)
+	board := parseInput(data, squareSize)
 
 	state := start(board, 2)
 

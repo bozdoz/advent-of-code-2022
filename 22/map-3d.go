@@ -33,6 +33,7 @@ type square struct {
 	neighbourRects  types.Set[image.Rectangle]
 }
 
+// checks edge of a square to see if it's already associated with a square
 func (a *square) hasNeighbourInDir(dir direction) bool {
 	switch dir {
 	case up:
@@ -48,6 +49,7 @@ func (a *square) hasNeighbourInDir(dir direction) bool {
 	return false
 }
 
+// set a square's neighbour
 func (a *square) setNeighbour(b *square, fromDir, toDir direction) {
 	switch fromDir {
 	case up:
@@ -59,6 +61,10 @@ func (a *square) setNeighbour(b *square, fromDir, toDir direction) {
 	case down:
 		a.s = &neighbour{b, toDir}
 	}
+	a.neighbourRects.Add(b.rect)
+
+	a.neighboursFound++
+
 }
 
 func (dir direction) inverse() direction {
@@ -81,45 +87,24 @@ func (a *square) addNeighbour(b *square, fromDir, toDir direction) (added bool) 
 		return false
 	}
 
-	switch fromDir {
-	case up:
-		a.n = &neighbour{b, toDir}
-		b.setNeighbour(a, inverseToDir, inverseFromDir)
-	case down:
-		a.s = &neighbour{b, toDir}
-		b.setNeighbour(a, inverseToDir, inverseFromDir)
-	case left:
-		a.w = &neighbour{b, toDir}
-		b.setNeighbour(a, inverseToDir, inverseFromDir)
-	case right:
-		a.e = &neighbour{b, toDir}
-		b.setNeighbour(a, inverseToDir, inverseFromDir)
-	}
-
-	a.neighbourRects.Add(b.rect)
-	b.neighbourRects.Add(a.rect)
-
-	a.neighboursFound++
-	b.neighboursFound++
+	a.setNeighbour(b, fromDir, toDir)
+	b.setNeighbour(a, inverseToDir, inverseFromDir)
 
 	return true
 }
 
-// overwritten in tests
-var squareSize = 50
-
 // turn the 2d map into 6 cube faces of {size}x{size}
-func cubeFold(board board) map[image.Rectangle]*square {
+func cubeFold(b board) map[image.Rectangle]*square {
 	// iterate board, save squares
 	// label neighbours
 	squares := map[image.Rectangle]*square{}
 
-	for r := 0; r <= board.height; r += squareSize {
-		for c := 0; c <= board.width; c += squareSize {
-			cell := board.get(r, c)
+	for r := 0; r <= b.height; r += b.squareSize {
+		for c := 0; c <= b.width; c += b.squareSize {
+			cell := b.get(r, c)
 			if cell == open || cell == wall {
 				min := image.Point{r, c}
-				max := image.Point{r + squareSize, c + squareSize}
+				max := image.Point{r + b.squareSize, c + b.squareSize}
 				rect := image.Rectangle{min, max}
 				squares[rect] = &square{
 					rect:           rect,
@@ -131,10 +116,10 @@ func cubeFold(board board) map[image.Rectangle]*square {
 
 	// right, down, left, up (like direction type)
 	neighbours := [4]image.Point{
-		{0, squareSize},
-		{squareSize, 0},
-		{0, -squareSize},
-		{-squareSize, 0},
+		{0, b.squareSize},
+		{b.squareSize, 0},
+		{0, -b.squareSize},
+		{-b.squareSize, 0},
 	}
 
 	// lazy naming for path-finding priority queue
@@ -146,6 +131,9 @@ func cubeFold(board board) map[image.Rectangle]*square {
 		priority       int
 	}
 
+	// breadth first search for neighbours along edges
+	// closest edge that isn't already claimed,
+	// or isn't already a neighbouring square, becomes a neighbour
 	pq := make(types.PriorityQueue[state], len(squares)*len(neighbours))
 
 	// populate priority queue
@@ -177,6 +165,7 @@ func cubeFold(board board) map[image.Rectangle]*square {
 	for neighboursFound != neighboursTotal {
 		cur := pq.Get()
 
+		// stop checking for square neighbours if they have 4
 		if cur.square.neighboursFound == 4 {
 			continue
 		}
@@ -193,6 +182,7 @@ func cubeFold(board board) map[image.Rectangle]*square {
 			added := cur.square.addNeighbour(sq, cur.fromDir, cur.toDir)
 
 			if added {
+				// added both
 				neighboursFound += 2
 			}
 			continue
@@ -208,7 +198,8 @@ func cubeFold(board board) map[image.Rectangle]*square {
 				fromDir:     cur.fromDir,
 				toDir:       dir,
 				currentRect: nextRect,
-				priority:    cur.priority + 1,
+				// decreases priority, because we want nearest neighbours
+				priority: cur.priority + 1,
 			}, cur.priority+1)
 		}
 	}
@@ -229,6 +220,10 @@ func (b board) move3d(cur [2]int, dir direction, steps int) ([2]int, direction) 
 
 		cur = next
 		dir = newDir
+
+		// for debugging
+		b.steps[cur] = stepsNum
+		stepsNum = (stepsNum % 9) + 1
 
 		i++
 	}
@@ -306,20 +301,24 @@ func (b board) rotateTile(pos [2]int, dir direction) (next [2]int, newDir direct
 			px, py := float64(curPoint.X), float64(curPoint.Y)
 			origin := rect.Min.Add(size.Div(2))
 			ox, oy := float64(origin.X)-0.5, float64(origin.Y)-0.5
-			// angle in radians 🤦‍♂️
-			// inverse to go clockwiise
-			theta := -(math.Pi / 2) * float64(rotations)
-			rx := math.Cos(theta)*(px-ox) - math.Sin(theta)*(py-oy) + ox
-			ry := math.Sin(theta)*(px-ox) + math.Cos(theta)*(py-oy) + oy
 
-			// move in new dir again
+			// angle in radians 🤦‍♂️
+			// inverse to go clockwise
+			theta := -(math.Pi / 2) * float64(rotations)
+
+			// need to round, because `int()` just floors
+			rx := math.Round(math.Cos(theta)*(px-ox) - math.Sin(theta)*(py-oy) + ox)
+			ry := math.Round(math.Sin(theta)*(px-ox) + math.Cos(theta)*(py-oy) + oy)
+
 			next = [2]int{int(rx), int(ry)}
+
+			// move in new direction by one
 			moveOne(&next, newDir)
 
 			// annoying transitions here
 			curPoint = image.Point{next[0], next[1]}
 
-			// mod to next cube face
+			// mod to next cube face (mod is virtually teleporting)
 			curPoint = curPoint.Mod(neighbour.sq.rect)
 
 			// set next for outer for loop to check for walls
