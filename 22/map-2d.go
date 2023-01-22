@@ -42,15 +42,19 @@ type board struct {
 	height, width int
 	start         [2]int
 	instructions  []instruction
+	squareSize    int                         // example and input differ
 	squares       map[image.Rectangle]*square // for 3d
+	steps         map[[2]int]int              // for debug
 }
 
-func parseInput(data inType) board {
+func parseInput(data inType, squareSize int) board {
 	tiles := strings.Split(data[0], "\n")
 	width := 0
 	board := board{
-		grid:   map[int]map[int]tile{},
-		height: len(tiles),
+		grid:       map[int]map[int]tile{},
+		height:     len(tiles),
+		steps:      map[[2]int]int{},
+		squareSize: squareSize,
 	}
 
 	var start *[2]int
@@ -133,6 +137,7 @@ func (b *board) get(r, c int) (val tile) {
 	return tile
 }
 
+// alters `pos` given a direction
 func moveOne(pos *[2]int, dir direction) {
 	switch dir {
 	case right:
@@ -221,6 +226,9 @@ func start(b board, part int) state {
 	return st
 }
 
+// for debugging
+var stepsNum = 0
+
 func (b board) move(cur [2]int, dir direction, steps int) [2]int {
 	i := 0
 
@@ -232,6 +240,10 @@ func (b board) move(cur [2]int, dir direction, steps int) [2]int {
 		}
 
 		cur = next
+
+		// debugging
+		b.steps[cur] = stepsNum
+		stepsNum = (stepsNum % 9) + 1
 
 		i++
 	}
@@ -256,13 +268,50 @@ func (st state) String() (out string) {
 func (d direction) String() string {
 	switch d {
 	case right:
-		return "R"
+		return ">"
 	case left:
-		return "L"
+		return "<"
 	case up:
-		return "U"
+		return "^"
 	case down:
-		return "D"
+		return "v"
 	}
 	return ""
+}
+
+func (i instruction) String() (out string) {
+	if i.command == move {
+		return fmt.Sprintf("[M %v]", i.value)
+	} else {
+		return fmt.Sprintf("[R %v]", i.value)
+	}
+}
+
+// print the whole board similar to the examples
+func (b board) Debug() {
+	// print the board
+	out := ""
+	for r := 0; r < b.height; r++ {
+		for c := 0; c < b.width; c++ {
+			tile := b.get(r, c)
+			if tile == empty {
+				out += " "
+			} else {
+				pos := [2]int{r, c}
+				n, ok := b.steps[pos]
+
+				switch {
+				case ok:
+					out += fmt.Sprint(n)
+				case tile == wall:
+					out += "#"
+				case tile == open:
+					out += "."
+				}
+			}
+		}
+		out += "\n"
+	}
+
+	fmt.Println(out)
 }
