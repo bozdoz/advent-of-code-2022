@@ -61,6 +61,8 @@ func TestCubeFold(t *testing.T) {
 
 // debug actual data
 func TestCubeFoldFifty(t *testing.T) {
+	t.Skip("Don't want to commit input files to repo")
+
 	var actual = fileReader("input.txt")
 
 	board := parseInput(actual, 50)
