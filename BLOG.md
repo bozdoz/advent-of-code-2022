@@ -1,5 +1,31 @@
 # What Am I Learning Each Day?
 
+- [Day 25](#day-25) ★★★
+- [Day 24](#day-24) ★★★★★★★
+- [Day 23](#day-23) ★★★★★★
+- [Day 22](#day-22) ★★★★★★★★★★
+- [Day 21](#day-21) ★★
+- [Day 20](#day-20) ★★★★★★
+- [Day 19](#day-19) ★★★★★★★★★★
+- [Day 18](#day-18) ★★★★★
+- [Day 17](#day-17) ★★★★★★★★
+- [Day 16](#day-16) ★★★★★★★
+- [Day 15](#day-15) ★★★★★★★
+- [Day 14](#day-14) ★★
+- [Day 13](#day-13) ★★★★★★
+- [Day 12](#day-12) ★★
+- [Day 11](#day-11) ★★★★★★★
+- [Day 10](#day-10) ★★★★★
+- [Day 9](#day-9)  ★★★★★★★
+- [Day 8](#day-8)  ★★★★
+- [Day 7](#day-7)  ★★★
+- [Day 6](#day-6)  ★★
+- [Day 5](#day-5)  ★★★★
+- [Day 4](#day-4)  ☆
+- [Day 3](#day-3)  ★
+- [Day 2](#day-2)  ★
+- [Day 1](#day-1)  ★
+
 ### Day 25
 
 **Difficulty: 3/10** ★★★☆☆☆☆☆☆☆
@@ -349,9 +375,9 @@ The grid was quite useful to view, though it was hard to distinguish which point
 
 ### Day 22
 
-**Difficulty: 7/10** ★★★★★★★☆☆☆
+**Difficulty: 10/10** ★★★★★★★★★★
 
-**Time: ~3 hrs**
+**Time: ~24 hrs**
 
 I found this one to be a hard one to wrap my head around.  Part 1 is 230 LOC. I did manage to get most of the logic inside one function:
 
